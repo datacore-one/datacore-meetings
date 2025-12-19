@@ -1,0 +1,317 @@
+name: meetings
+version: 0.3.0
+description: |
+  Meeting lifecycle management for Datacore.
+  Automates standup generation, meeting preparation, transcription processing,
+  and smart routing between daily/weekly meetings.
+
+  Tagline: "Your journal remembers. AI prepares."
+
+author: datacore
+repository: https://github.com/datacore-one/module-meetings
+license: MIT
+
+dependencies:
+  - core@>=1.0.0
+
+optional:
+  - nightshift   # Show nightshift results in standup
+  - crm          # Include CRM context for meetings
+  - calendar     # Calendar sync for meeting detection
+
+provides:
+  commands:
+    - standup         # Generate standup from journal + schedule
+    - meeting-prep    # Prepare for specific meeting with context
+    - meeting-agenda  # Generate shareable agenda document
+    - my-questions    # View open questions requiring input
+    - meeting-process # Process transcripts, extract actions (Phase 3)
+
+  agents:
+    - standup-generator       # Parse journal, extract accomplishments
+    - agenda-generator        # Generate agendas from multiple sources
+    - question-researcher     # Pre-research open questions
+    - transcription-processor # Extract actions/decisions from transcripts (Phase 3)
+    - meeting-router          # Smart routing between meetings (Phase 4)
+
+  templates:
+    - standup          # Standup output template
+    - agenda-daily     # Daily meeting agenda
+    - agenda-weekly    # Weekly meeting agenda
+    - agenda-product   # Product meeting agenda
+    - questions-prep   # Open questions preparation view
+    - meeting-summary  # Post-meeting processing summary (Phase 3)
+
+  lib:
+    - google_docs          # Google Docs API fetch utility (Phase 3)
+    - transcription_parser # Parse transcripts, extract data (Phase 3)
+
+settings:
+  auto_generate_standup:
+    description: "Auto-generate standup during /today if Daily meeting detected"
+    default: true
+
+  standup_meeting_match:
+    description: "Calendar entry title pattern to match for standup trigger"
+    default: "Daily"
+
+  blockers_threshold_days:
+    description: "Highlight WAITING tasks older than N days"
+    default: 3
+
+  post_to_journal:
+    description: "Automatically append standup to today's journal"
+    default: true
+
+  yesterday_sections:
+    description: "Journal sections to parse for yesterday's accomplishments"
+    default:
+      - "Yesterday's Wins"
+      - "Session Work"
+      - "Stats"
+
+  default_team_mode:
+    description: "Default to team-filtered standup (vs personal full detail)"
+    default: true
+
+  team_space_mappings:
+    description: "Map team names to space directories"
+    default:
+      datafund: "1-datafund"
+      datacore: "2-datacore"
+
+  personal_filters:
+    description: "Keywords indicating personal items to filter in team mode"
+    default:
+      - "BVI"
+      - "personal finance"
+      - "family"
+      - "health"
+      - "banking"
+      - "tokens"
+      - "wallet"
+
+  anxiety_filters:
+    description: "Patterns to filter as they create team anxiety"
+    default:
+      - "created \\d+ tasks"
+      - "found \\d+ issues"
+      - "backlog of \\d+"
+      - "\\d+ overdue"
+
+  project_keywords:
+    description: "Map project/product names to spaces for auto-detection"
+    default:
+      verity:
+        keywords: ["verity", "data marketplace", "data RWA"]
+        space: datafund
+      santorio:
+        keywords: ["santorio", "health data", "longevity"]
+        space: datafund
+      datacore:
+        keywords: ["datacore", "module", "agent", "GTD"]
+        space: datacore
+      fds:
+        keywords: ["FDS", "fair data", "swarm"]
+        space: datafund
+
+  meeting_presets:
+    description: "Predefined meeting type configurations"
+    default:
+      daily:
+        filter_level: team
+        max_items: 5
+        include_blockers: team_actionable
+        format: brief
+      weekly:
+        filter_level: team
+        max_items: 7
+        include_blockers: all_team
+        format: full
+      investor:
+        filter_level: external
+        max_items: 5
+        include_blockers: critical_only
+        format: polished
+      product:
+        filter_level: product_team
+        max_items: 7
+        include_blockers: technical
+        format: technical
+
+  chat_format:
+    description: "Settings for chat export format"
+    default:
+      platform: slack
+      emoji_prefix: true
+      max_length: 500
+      bullet_char: "•"
+
+  confidence_thresholds:
+    description: "Thresholds for confidence indicator"
+    default:
+      high_min_items: 4
+      medium_min_items: 2
+      stale_journal_days: 2
+
+  # Phase 2: Questions and Escalation
+  questions:
+    description: "Open questions configuration"
+    default:
+      github_label: "question"
+      auto_research: true
+      research_model: haiku
+      meeting_labels:
+        daily: "meeting:daily"
+        weekly: "meeting:weekly"
+
+  escalation:
+    description: "Daily-to-weekly escalation settings"
+    default:
+      daily_threshold: 3
+      auto_detect: true
+      property_name: "DAILY_COUNT"
+
+  agenda_task_tags:
+    description: "Tags that indicate a task should appear on meeting agendas"
+    default:
+      decision: "decision"      # Needs team decision
+      discuss: "discuss"        # Needs discussion
+      team: "@team"             # Explicitly for team meeting
+      weekly: "@weekly"         # Explicitly for weekly
+      daily: "@daily"           # Explicitly for daily
+      investor: "investor"      # Investor-related
+      roadmap: "roadmap"        # Strategic roadmap items
+      blocked: "blocked"        # Blocked, may need team help
+
+  agenda_priority_threshold:
+    description: "Include [#A] tasks with deadlines in next N days"
+    default: 7
+
+  # Phase 3: Transcription Processing
+  transcription:
+    description: "Transcription processing configuration"
+    default:
+      google_docs:
+        enabled: true
+        auto_discover: true
+        transcript_folder: "Meet Recordings"
+      granola:
+        enabled: true
+        import_path: "~/Downloads"
+      action_confidence_threshold: 0.7
+      decision_confidence_threshold: 0.8
+      action_patterns:
+        - "I'll"
+        - "I will"
+        - "@person will"
+        - "Action item:"
+        - "TODO:"
+      decision_patterns:
+        - "We decided"
+        - "The plan is"
+        - "Going forward"
+        - "We'll go with"
+
+  # Phase 4: Smart Routing
+  routing:
+    description: "Smart routing between daily/weekly meetings"
+    default:
+      enabled: true
+      auto_apply: false  # Require explicit --apply flag
+      escalation_threshold: 3  # Daily appearances before escalate
+      escalation_age_days: 3   # Days since first mention
+      report_in_standup: true  # Include routing changes in standup
+      dedup_across_meetings: true  # Remove from daily when escalated
+
+  # Team member mapping for assignee resolution
+  team_members:
+    description: "Map speaker names to team handles"
+    default:
+      "Gregor": "@gregor"
+      "Tadej": "@tadej"
+      "CRT": "@crt"
+
+  github_repos:
+    description: "GitHub repos for question queries per project"
+    default:
+      verity: "datacore-one/verity"
+      datafund: "datacore-one/datafund-space"
+      datacore: "datacore-one/datacore"
+
+  meeting_types:
+    description: "Full meeting type configurations"
+    default:
+      daily:
+        name: "Daily Standup"
+        duration: 15
+        template: "agenda-daily"
+        calendar_match: "Daily"
+        sources:
+          - standup
+          - blockers
+          - escalation_candidates
+      weekly-exec:
+        name: "Weekly Exec"
+        duration: 45
+        template: "agenda-weekly"
+        calendar_match: "Weekly Exec"
+        escalate_from_daily: true
+        sources:
+          - escalated
+          - questions
+          - strategic
+          - metrics
+      comms-weekly:
+        name: "Comms Weekly"
+        duration: 45
+        template: "agenda-weekly"
+        calendar_match: "Comms Weekly"
+        sources:
+          - content_pipeline
+          - campaigns
+      verity-product:
+        name: "Verity Product Call"
+        duration: 60
+        template: "agenda-product"
+        calendar_match: "Verity"
+        github_repo: "datacore-one/verity"
+        pull_issues: true
+        sources:
+          - github_issues
+          - github_prs
+          - tech_questions
+          - architecture
+
+hooks:
+  today: "commands/today-hook.md"
+  weekly_review: "commands/weekly-hook.md"
+  post_install: |
+    echo "Meetings module installed."
+    echo ""
+    echo "Your journal remembers. AI prepares."
+    echo ""
+    echo "Quick start:"
+    echo "  1. Run /standup to generate a standup report"
+    echo "  2. Run /meeting-prep weekly-exec to prepare for meetings"
+    echo "  3. Run /my-questions to see open questions"
+    echo "  4. Configure meeting_types in settings for custom meetings"
+
+use_cases:
+  - Generate zero-input standups from yesterday's journal
+  - Auto-trigger standup generation when Daily meeting is scheduled
+  - Surface blockers from WAITING tasks in org files
+  - Prepare for meetings with context and pre-researched questions
+  - Track open questions via GitHub Issues
+  - Escalate recurring items from daily to weekly meetings
+  - Generate shareable meeting agendas
+  - Process Google Meet transcripts to extract action items (Phase 3)
+  - Auto-create tasks from meeting discussions (Phase 3)
+  - Resolve open questions based on meeting discussions (Phase 3)
+  - Smart routing of items between daily and weekly meetings (Phase 4)
+  - Deduplicate items appearing in multiple meeting agendas (Phase 4)
+
+related_dips:
+  - DIP-0013  # Meetings Module specification
+  - DIP-0009  # GTD integration (WAITING task detection)
+  - DIP-0010  # Calendar sync (meeting detection)
