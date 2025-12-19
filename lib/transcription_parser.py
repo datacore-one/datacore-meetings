@@ -77,6 +77,7 @@ class ParsedTranscript:
     speakers: List[str]
     duration_estimate: Optional[int] = None  # minutes
     format_detected: str = "unknown"
+    key_concepts: List[str] = field(default_factory=list)  # Extracted concepts/topics
 
     @property
     def summary_stats(self) -> dict:
@@ -87,6 +88,7 @@ class ParsedTranscript:
             "action_items": len(self.action_items),
             "decisions": len(self.decisions),
             "questions": len(self.questions_raised),
+            "key_concepts": len(self.key_concepts),
             "duration_minutes": self.duration_estimate,
         }
 
@@ -157,12 +159,60 @@ class TranscriptionParser:
 
     # === Gemini Notes Format ===
     # Format: "Notes by Gemini" with Summary, Details, Suggested next steps
-    GEMINI_ACTION_PATTERN = re.compile(
-        r'(?P<person>[A-Z][a-zčćžšđ]+(?:\s+[A-Z][a-zčćžšđ]+)?)\s+'
-        r'(?:will|should|needs to|is going to)\s+'
-        r'(?P<action>.+?)(?:\.|$)',
-        re.IGNORECASE
-    )
+    # Gemini uses past-tense narrative, so we need different patterns
+
+    # Patterns for extracting implicit actions from Gemini summaries
+    GEMINI_ACTION_PATTERNS = [
+        # "mentioned a plan/solution to X" -> action: X
+        (r'mentioned\s+(?:a\s+)?(?:plan|solution|approach|way)\s+to\s+"(?P<action>[^"]+)"', 0.75, None),
+        # "aiming to X" / "aims to X"
+        (r'aiming\s+to\s+(?P<action>create|build|develop|launch|establish|set up|implement)[^,.]+', 0.75, None),
+        # "need to bootstrap/build/create X"
+        (r'(?:need|agreed on the need)\s+to\s+(?P<action>bootstrap|build|create|develop|implement|launch|set up)[^,.]+', 0.8, None),
+        # "Speaker will/should X" (explicit future) - but NOT "You should review"
+        (r'(?P<person>[A-Z][a-zčćžšđ]+(?:\s+[A-Z][a-zčćžšđ]+)?)\s+(?:will|needs to)\s+(?P<action>(?!review|make sure)[^,.]+)', 0.85, "person"),
+        # Quoted action phrases like "Start a data business in 15 minutes"
+        (r'"(?P<action>Start[^"]+)"', 0.8, None),
+        # "potentially leading to X"
+        (r'potentially\s+leading\s+to\s+(?P<action>data monetization[^,.]+)', 0.65, None),
+    ]
+
+    # Patterns for extracting decisions from Gemini summaries
+    GEMINI_DECISION_PATTERNS = [
+        # "They agreed on X"
+        (r'(?:They|The speakers?|Both)\s+agreed\s+(?:on\s+)?(?:the\s+)?(?:need\s+(?:to|for)\s+)?(?P<decision>[^,.]+)', 0.9),
+        # "The discussion centered on X"
+        (r'discussion\s+centered\s+on\s+(?P<decision>[^,.]+)', 0.75),
+        # "described as X" (classification/definition)
+        (r'described\s+as\s+(?:a\s+)?(?P<decision>[^,.]+)', 0.7),
+        # "compared to X" (strategic positioning)
+        (r'compared\s+(?:the concept\s+)?to\s+(?P<decision>[^,.]+)', 0.7),
+        # "involves extending/including X"
+        (r'involves\s+(?:extending|including|adding)\s+(?P<decision>[^,.]+)', 0.75),
+        # "outlined a value proposition"
+        (r'outlined\s+(?:a\s+)?(?P<decision>value proposition[^,.]+)', 0.8),
+        # "emphasized X"
+        (r'emphasized\s+(?:the\s+)?(?:concept\s+of\s+)?(?P<decision>[^,.]+)', 0.7),
+    ]
+
+    # Patterns to extract key concepts/topics from Gemini
+    GEMINI_CONCEPT_PATTERNS = [
+        # Quoted concepts (at least 3 words to filter noise)
+        r'"(?P<concept>[A-Z][^"]{10,})"',
+        # Capitalized compound terms (Data Business Model, DMCC Portal, etc.)
+        r'(?P<concept>(?:[A-Z][a-z]+\s+){1,2}(?:Model|System|Platform|Exchange|Portal|Solution|Framework|Architecture|Proposition|Interface))',
+        # Technical terms (data-specific)
+        r'(?P<concept>automated market making|tokeniz(?:ation|ing) data|white[- ]label solution|data (?:asset|product|business|economy|monetization))',
+        # Business terms
+        r'(?P<concept>revenue stream|legal entit(?:y|ies)|new asset class)',
+    ]
+
+    # Concepts to skip (noise)
+    GEMINI_CONCEPT_SKIP = {
+        'super', 'very familiar', 'trading view', 'label solution',
+        'and value proposition', 'and business model', 'fledged exchange',
+        'asset trading interface',
+    }
 
     def parse(self, content: str, format: str = "auto") -> ParsedTranscript:
         """Parse transcript content.
@@ -190,17 +240,23 @@ class TranscriptionParser:
 
         # Extract speakers
         speakers = list(set(line.speaker for line in lines if line.speaker))
+        # Filter out "Unknown"
+        speakers = [s for s in speakers if s != "Unknown"]
 
         # Estimate duration from timestamps
         duration = self._estimate_duration(lines)
 
-        # Extract action items
-        action_items = self._extract_action_items(lines)
+        # Extract using format-specific methods
+        if format == "gemini":
+            action_items = self._extract_gemini_actions(lines, content)
+            decisions = self._extract_gemini_decisions(lines, content)
+            key_concepts = self._extract_gemini_concepts(content)
+        else:
+            action_items = self._extract_action_items(lines)
+            decisions = self._extract_decisions(lines)
+            key_concepts = []
 
-        # Extract decisions
-        decisions = self._extract_decisions(lines)
-
-        # Extract questions
+        # Extract questions (same for all formats)
         questions = self._extract_questions(lines)
 
         return ParsedTranscript(
@@ -211,6 +267,7 @@ class TranscriptionParser:
             speakers=speakers,
             duration_estimate=duration,
             format_detected=format,
+            key_concepts=key_concepts,
         )
 
     def detect_format(self, content: str) -> str:
@@ -344,18 +401,26 @@ class TranscriptionParser:
         speakers_found = set()
 
         # First pass: extract all speaker names mentioned
+        # Pattern: "FirstName LastName discussed/mentioned/etc" (including Unicode chars)
+        # Use \w with UNICODE flag to match any word character including accented letters
         speaker_pattern = re.compile(
-            r'([A-Z][a-zčćžšđ]+(?:\s+[A-Z][a-zčćžšđ]+)?)\s+'
-            r'(?:and\s+)?([A-Z][a-zčćžšđ]+(?:\s+[A-Z][a-zčćžšđ]+)?)?'
-            r'(?:\s+(?:discussed|mentioned|noted|confirmed|inquired|responded|brought up|covered|will|should))'
+            r'((?:[A-Z]|\w)[a-zA-ZčćžšđČĆŽŠĐ]+\s+(?:[A-Z]|\w)[a-zA-ZčćžšđČĆŽŠĐ]+)\s+'
+            r'(?:discussed|mentioned|noted|confirmed|outlined|affirmed|elaborated|emphasized|compared|further)',
+            re.UNICODE
         )
+        # Words that look like names but aren't
+        non_names = {'The Speakers', 'They Agreed', 'This Ownership', 'Bloomberg and',
+                     'The Plan', 'The Discussion', 'The Concept', 'Data Business',
+                     'Multi Commodities', 'Asset Class'}
+
         for raw_line in raw_lines:
             matches = speaker_pattern.findall(raw_line)
-            for match in matches:
-                if match[0] and match[0] not in ['The', 'They', 'This', 'That']:
-                    speakers_found.add(match[0])
-                if match[1] and match[1] not in ['The', 'They', 'This', 'That']:
-                    speakers_found.add(match[1])
+            for name in matches:
+                if name and name not in non_names:
+                    # Additional validation: first word should be a typical first name (capitalized, not a common word)
+                    first_word = name.split()[0]
+                    if first_word.lower() not in ('the', 'this', 'that', 'they', 'data', 'multi', 'asset', 'bloomberg'):
+                        speakers_found.add(name)
 
         current_speaker = list(speakers_found)[0] if speakers_found else "Unknown"
 
@@ -378,14 +443,17 @@ class TranscriptionParser:
                 continue
 
             # Extract speaker mentions in details
-            # Pattern: "Speaker Name discussed/mentioned/noted..."
+            # Pattern: "Speaker Name discussed/mentioned/noted..." (Unicode-aware)
             speaker_mention = re.match(
-                r'^([A-Z][a-zčćžšđ]+(?:\s+[A-Z][a-zčćžšđ]+)?)\s+'
-                r'(?:discussed|mentioned|noted|confirmed|inquired|responded|brought up|covered)',
-                raw_line
+                r'^((?:[A-Z]|\w)[a-zA-ZčćžšđČĆŽŠĐ]+\s+(?:[A-Z]|\w)[a-zA-ZčćžšđČĆŽŠĐ]+)\s+'
+                r'(?:discussed|mentioned|noted|confirmed|outlined|affirmed|elaborated|emphasized|compared|further)',
+                raw_line,
+                re.UNICODE
             )
             if speaker_mention:
                 current_speaker = speaker_mention.group(1)
+                if current_speaker not in speakers_found:
+                    speakers_found.add(current_speaker)
 
             # Extract timestamp from Gemini format: (00:00:00)
             timestamp = None
@@ -393,12 +461,30 @@ class TranscriptionParser:
             if ts_match:
                 timestamp = ts_match.group(1)
 
+            # Check if any known speaker is mentioned in this line (not just at start)
+            line_speaker = current_speaker
+            for speaker in speakers_found:
+                if speaker in raw_line:
+                    line_speaker = speaker
+                    break
+
             lines.append(TranscriptLine(
                 timestamp=timestamp,
-                speaker=current_speaker,
+                speaker=line_speaker,
                 text=raw_line,
                 line_number=i + 1,
             ))
+
+        # Ensure all speakers found in first pass are represented in lines
+        # by adding metadata to first line mentioning them
+        all_speakers_in_lines = set(line.speaker for line in lines)
+        for speaker in speakers_found:
+            if speaker not in all_speakers_in_lines:
+                # Find a line that mentions this speaker
+                for line in lines:
+                    if speaker in line.text:
+                        line.speaker = speaker
+                        break
 
         return lines
 
@@ -469,6 +555,18 @@ class TranscriptionParser:
         r"please provide feedback",
         r"short survey",
         r"you should review",
+        r"gemini takes notes",
+        r"notes length",
+        r"suggested next steps were found",
+    ]
+
+    # Generic/fragment patterns to skip in Gemini extraction
+    GEMINI_SKIP_PATTERNS = [
+        r"^features like",
+        r"^a data asset trading",
+        r"^healthcare",
+        r"^\d{2}:\d{2}",  # Timestamps
+        r"^reports,? compliance",
     ]
 
     def _extract_action_items(self, lines: List[TranscriptLine]) -> List[ActionItem]:
@@ -595,6 +693,187 @@ class TranscriptionParser:
             if match:
                 return match.group('deadline').strip()
         return None
+
+    def _extract_gemini_actions(self, lines: List[TranscriptLine], content: str) -> List[ActionItem]:
+        """Extract action items from Gemini summary format.
+
+        Gemini summaries use narrative past-tense, so we look for:
+        - Future-oriented phrases ("will", "should", "needs to")
+        - Implicit actions ("mentioned a plan to X", "aiming to X")
+        - Quoted action phrases ("Start a data business")
+        """
+        action_items = []
+        seen_actions = set()  # Dedup
+
+        # Filter out Gemini meta-instructions from content
+        filtered_content = content
+        for meta_pattern in self.GEMINI_META_PATTERNS:
+            filtered_content = re.sub(meta_pattern, '', filtered_content, flags=re.IGNORECASE)
+
+        # Process full content for Gemini patterns
+        for pattern, confidence, assignee_source in self.GEMINI_ACTION_PATTERNS:
+            for match in re.finditer(pattern, filtered_content, re.IGNORECASE):
+                action = match.group('action').strip()
+
+                # Clean up action text
+                action = re.sub(r'[.!?,;:"]+$', '', action)
+                action = re.sub(r'\(\d{2}:\d{2}:\d{2}\)', '', action)  # Remove timestamps
+                action = action.strip()
+
+                # Skip short actions
+                if len(action) < 10:
+                    continue
+
+                # Skip fragment/generic patterns
+                if any(re.match(skip, action, re.IGNORECASE) for skip in self.GEMINI_SKIP_PATTERNS):
+                    continue
+
+                # Skip if looks like partial extraction
+                if action.lower().startswith(('a ', 'the ', 'an ')):
+                    continue
+
+                action_key = action.lower()[:50]
+                if action_key in seen_actions:
+                    continue
+                seen_actions.add(action_key)
+
+                # Determine assignee
+                assignee = None
+                if assignee_source == "person" and 'person' in match.groupdict():
+                    assignee = match.group('person').strip()
+
+                # Get source context (surrounding text)
+                start = max(0, match.start() - 20)
+                end = min(len(content), match.end() + 20)
+                source_line = content[start:end].strip()
+
+                # Find speaker from nearby context
+                speaker = self._find_speaker_near_match(content, match.start())
+
+                action_items.append(ActionItem(
+                    description=action,
+                    assignee=assignee,
+                    source_line=source_line,
+                    speaker=speaker,
+                    confidence=confidence,
+                    deadline=self._extract_deadline(match.group(0)),
+                ))
+
+        # Also try standard patterns on parsed lines (may catch explicit actions)
+        standard_actions = self._extract_action_items(lines)
+        for action in standard_actions:
+            action_key = action.description.lower()[:50]
+            if action_key not in seen_actions:
+                action_items.append(action)
+                seen_actions.add(action_key)
+
+        return sorted(action_items, key=lambda x: -x.confidence)
+
+    def _extract_gemini_decisions(self, lines: List[TranscriptLine], content: str) -> List[Decision]:
+        """Extract decisions from Gemini summary format.
+
+        Gemini summaries capture decisions as:
+        - "They agreed on X"
+        - "The discussion centered on X"
+        - "emphasized the concept of X"
+        """
+        decisions = []
+        seen_decisions = set()  # Dedup
+
+        for pattern, confidence in self.GEMINI_DECISION_PATTERNS:
+            for match in re.finditer(pattern, content, re.IGNORECASE):
+                decision = match.group('decision').strip()
+
+                # Clean up
+                decision = re.sub(r'[.!?,;:"]+$', '', decision)
+                decision = decision.strip()
+
+                # Skip short or duplicate
+                if len(decision) < 10:
+                    continue
+                decision_key = decision.lower()[:50]
+                if decision_key in seen_decisions:
+                    continue
+                seen_decisions.add(decision_key)
+
+                # Get source context
+                start = max(0, match.start() - 30)
+                end = min(len(content), match.end() + 30)
+                source_line = content[start:end].strip()
+
+                # Find speaker
+                speaker = self._find_speaker_near_match(content, match.start())
+
+                decisions.append(Decision(
+                    description=decision,
+                    context="",
+                    source_line=source_line,
+                    speaker=speaker,
+                    confidence=confidence,
+                ))
+
+        # Also try standard patterns
+        standard_decisions = self._extract_decisions(lines)
+        for decision in standard_decisions:
+            decision_key = decision.description.lower()[:50]
+            if decision_key not in seen_decisions:
+                decisions.append(decision)
+                seen_decisions.add(decision_key)
+
+        return sorted(decisions, key=lambda x: -x.confidence)
+
+    def _extract_gemini_concepts(self, content: str) -> List[str]:
+        """Extract key concepts and topics from Gemini summary.
+
+        Looks for:
+        - Quoted terms ("Activate your data")
+        - Capitalized compound terms (Data Business, DMCC Portal)
+        - Technical terminology (tokenization, white-label)
+        """
+        concepts = []
+        seen = set()
+
+        for pattern in self.GEMINI_CONCEPT_PATTERNS:
+            for match in re.finditer(pattern, content, re.IGNORECASE):
+                concept = match.group('concept').strip()
+
+                # Clean up
+                concept = re.sub(r'^["\',]|["\',.]$', '', concept)
+                concept = concept.strip()
+
+                # Skip short terms
+                if len(concept) < 5:
+                    continue
+
+                # Skip noise terms
+                if concept.lower() in self.GEMINI_CONCEPT_SKIP:
+                    continue
+
+                # Normalize for deduplication
+                concept_key = concept.lower().replace('-', ' ')
+                if concept_key not in seen:
+                    concepts.append(concept)
+                    seen.add(concept_key)
+
+        return concepts[:15]  # Limit to top 15 concepts
+
+    def _find_speaker_near_match(self, content: str, position: int) -> str:
+        """Find the speaker name closest to a match position in content."""
+        # Look backwards from position for a speaker pattern
+        search_start = max(0, position - 200)
+        search_text = content[search_start:position]
+
+        # Pattern: "Speaker Name discussed/mentioned/noted"
+        speaker_pattern = re.compile(
+            r'([A-Z][a-zčćžšđ]+(?:\s+[A-Z][a-zčćžšđ]+)?)\s+'
+            r'(?:discussed|mentioned|noted|outlined|confirmed|emphasized|elaborated|compared|affirmed)'
+        )
+
+        matches = list(speaker_pattern.finditer(search_text))
+        if matches:
+            return matches[-1].group(1)  # Return closest match
+
+        return "Unknown"
 
 
 def main():
