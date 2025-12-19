@@ -2,24 +2,32 @@
 
 View open questions requiring your input before meetings.
 
-## Usage
+## Workflow
 
-```
-/my-questions [project] [--meeting TYPE] [--all]
-```
+### Step 1: Understand Intent
 
-## Options
+If invoked as just `/my-questions` with no filters, ask:
 
-| Option | Description |
-|--------|-------------|
-| `project` | Filter by project (e.g., `verity`, `datafund`) |
-| `--meeting` | Filter by target meeting: `daily`, `weekly`, `product` |
-| `--all` | Show all open questions across projects |
-| `--research` | Trigger AI research on unresearched questions |
+"What would you like to see?"
 
-## Algorithm
+1. **All questions** - Everything across projects
+2. **Specific project** - Just Verity, Datafund, etc.
+3. **For a meeting** - Questions tagged for daily/weekly/product
+4. **Needing my input** - Where I'm blocking progress
 
-### Step 1: Query GitHub Issues
+If context is clear (e.g., "questions for weekly"), proceed directly.
+
+### Step 2: Gather Context
+
+**Ask if not provided:**
+- "Which project?" (if multiple exist)
+- "Should I research unresearched questions?" (triggers AI)
+
+**Auto-detect:**
+- Your GitHub username for "needs your input" filtering
+- Upcoming meetings for deadline context
+
+### Step 3: Query GitHub Issues
 
 ```bash
 gh issue list --label question --state open --json number,title,body,labels,assignees,url
@@ -27,10 +35,10 @@ gh issue list --label question --state open --json number,title,body,labels,assi
 
 For specific project:
 ```bash
-gh issue list --repo datacore-one/{project} --label question --state open --json number,title,body,labels,assignees,url
+gh issue list --repo datacore-one/{project} --label question --state open
 ```
 
-### Step 2: Parse Question Data
+### Step 4: Parse Question Data
 
 For each issue, extract:
 - **Title**: Issue title
@@ -40,7 +48,7 @@ For each issue, extract:
 - **Research status**: Check for `## AI Research` section in body
 - **Your involvement**: Check if current user is mentioned/assigned
 
-### Step 3: Classify by Status
+### Step 5: Classify by Status
 
 Group questions into:
 
@@ -62,16 +70,25 @@ Group questions into:
 - Closed in last 7 days
 - Show decision for context
 
-### Step 4: Apply Filters
+### Step 6: Apply Filters
 
-If `--meeting` specified:
+If meeting specified:
 - `daily` → only `meeting:daily` labeled
-- `weekly` → only `meeting:weekly` labeled OR unlabeled (default to weekly)
+- `weekly` → only `meeting:weekly` labeled OR unlabeled
 - `product` → filter by product repo
 
-### Step 5: Generate Output
+### Step 7: Generate Output
 
 Use `templates/questions-prep.md` template with grouped questions.
+
+### Step 8: Follow-up
+
+After showing questions, offer next steps:
+
+"Here are your open questions. Would you like to:"
+- "Trigger AI research on unresearched questions?" → Run with research flag
+- "Prepare for a specific meeting?" → `/meeting-prep`
+- "Generate meeting agenda?" → `/meeting-agenda`
 
 ## Output Example
 
@@ -102,7 +119,7 @@ Needs Research (1)
 ------------------
 1. [#47] OAuth provider selection
    - Type: Technical comparison
-   - Run: /my-questions --research to trigger AI research
+   - Run with --research to trigger AI research
 
 Recently Resolved (1)
 ---------------------
@@ -112,29 +129,43 @@ Recently Resolved (1)
 
 ## Integration
 
-### With /meeting-prep
-
-`/my-questions` output feeds into `/meeting-prep`:
-- Questions ready for discussion → agenda items
-- Questions needing input → preparation reminders
-
 ### With /today
 
 If questions need your input before a meeting today:
 ```
-⚠️ Meeting Prep Needed
+Meeting Prep Needed
    2 questions need your input before Weekly Exec (14:00)
    Run: /my-questions --meeting weekly
 ```
+
+### With /meeting-prep
+
+Questions feed into meeting preparation:
+- Ready for discussion → agenda items
+- Needs your input → preparation reminders
 
 ## Error Handling
 
 | Error | Response |
 |-------|----------|
 | GitHub API unavailable | Show cached questions if available, note stale data |
-| No questions found | "No open questions for {project}" |
-| Project not found | List available projects |
+| No questions found | "No open questions for {project}" - offer to check other projects |
+| Project not found | List available projects and ask which one |
 | Not authenticated | Prompt to run `gh auth login` |
+
+## Configuration
+
+Settings in `settings.local.yaml`:
+
+```yaml
+meetings:
+  questions:
+    github_label: "question"
+    auto_research: true
+  github_repos:
+    verity: "datacore-one/verity"
+    datafund: "datacore-one/datafund-space"
+```
 
 ## Your Boundaries
 
@@ -142,9 +173,10 @@ If questions need your input before a meeting today:
 - Query GitHub Issues via `gh` CLI
 - Read issue bodies and comments
 - Filter by labels and assignees
+- Trigger research with flag
 
 **YOU CANNOT:**
-- Create or modify issues (use --research flag for that)
+- Create or modify issues directly
 - Access private repos without auth
 - Make decisions on questions
 
@@ -152,3 +184,4 @@ If questions need your input before a meeting today:
 - Show all questions the user is involved in
 - Highlight deadline-sensitive items
 - Link to GitHub issues for full context
+- Offer follow-up options after showing questions

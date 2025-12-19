@@ -2,53 +2,31 @@
 
 Generate a structured agenda for a specific meeting type.
 
-## Usage
+## Workflow
 
-```
-/meeting-agenda <type> [--date YYYY-MM-DD] [--post] [--github]
-```
+### Step 1: Understand Intent
 
-## Options
+If invoked as just `/meeting-agenda` with no meeting type, ask:
 
-| Option | Description |
-|--------|-------------|
-| `type` | Meeting type: `daily`, `weekly-exec`, `comms-weekly`, `verity-product` |
-| `--date` | Target date (default: next occurrence) |
-| `--post` | Post agenda to team space or journal |
-| `--github` | Create/update GitHub issue with agenda |
+"Which meeting's agenda would you like to generate?"
 
-## Meeting Types
+1. **Daily** - Quick 15-min standup agenda
+2. **Weekly Exec** - Strategic review (45 min)
+3. **Comms Weekly** - Content and campaigns (45 min)
+4. **Product** - Technical deep-dive (60 min)
 
-| Type | Duration | Template | Sources |
-|------|----------|----------|---------|
-| `daily` | 15 min | agenda-daily.md | standups, blockers |
-| `weekly-exec` | 45 min | agenda-weekly.md | escalations, questions, metrics |
-| `comms-weekly` | 45 min | agenda-weekly.md | content pipeline, campaigns |
-| `verity-product` | 60 min | agenda-product.md | GitHub issues, PRs, tech decisions |
+If context is clear (e.g., "create weekly exec agenda"), proceed directly.
 
-## Algorithm
+### Step 2: Gather Context
 
-### Step 1: Detect Meeting Context
+**Ask if not provided:**
+- "Which date?" (default: next occurrence)
+- "Should I post it to the team space?" (--post)
+- "Create a GitHub issue for it?" (--github)
 
-From `calendar.org`, find the meeting entry:
-```org
-* Weekly Exec
-  <2025-12-19 Thu 14:00-14:45>
-  - Attendees: @gregor, @crt, @tadej
-```
-
-Extract:
-- Date and time
-- Duration
+**Auto-detect from calendar.org:**
+- Date, time, duration
 - Attendees
-
-### Step 2: Invoke Agenda Generator Agent
-
-Pass to `agenda-generator` agent:
-- Meeting type and config
-- Date
-- Attendees
-- Sources to query
 
 ### Step 3: Gather Items per Meeting Type
 
@@ -82,19 +60,41 @@ Ensure items are in the right meeting:
 
 ### Step 5: Render Agenda
 
-Use appropriate template with gathered data.
+Use appropriate template with gathered data:
+- `templates/agenda-daily.md` for daily
+- `templates/agenda-weekly.md` for weekly
+- `templates/agenda-product.md` for product
 
 ### Step 6: Post (if requested)
 
-**--post flag:**
+**Post to team space:**
 - Daily: Append to today's journal
-- Weekly: Create in `1-datafund/today/` or team space
-- Product: Create in product docs or GitHub
+- Weekly: Create in `1-datafund/today/`
+- Product: Create in product docs
 
-**--github flag:**
-- Create/update GitHub issue with agenda
+**Create GitHub issue:**
+- Create/update issue with agenda
 - Add `agenda` label
 - Assign to meeting organizer
+
+### Step 7: Follow-up
+
+After generating agenda, offer next steps:
+
+"Agenda generated. Would you like to:"
+- "Post it to the team space?" → Add --post flag
+- "Create a GitHub issue?" → Add --github flag
+- "Do more preparation?" → `/meeting-prep`
+- "Process a past meeting's transcript?" → `/meeting-process`
+
+## Meeting Types
+
+| Type | Duration | Template | Sources |
+|------|----------|----------|---------|
+| `daily` | 15 min | agenda-daily.md | standups, blockers |
+| `weekly-exec` | 45 min | agenda-weekly.md | escalations, questions, metrics |
+| `comms-weekly` | 45 min | agenda-weekly.md | content pipeline, campaigns |
+| `verity-product` | 60 min | agenda-product.md | GitHub issues, PRs, tech decisions |
 
 ## Output Example
 
@@ -130,11 +130,18 @@ Decisions Needed (2)
 [Posted to: 1-datafund/today/2025-12-19-weekly-exec.md]
 ```
 
+## Difference from /meeting-prep
+
+| Command | Purpose | When to Use |
+|---------|---------|-------------|
+| `/meeting-prep` | Personal preparation with full context | 2-3 days before |
+| `/meeting-agenda` | Generate shareable agenda document | 1 day before |
+
 ## Error Handling
 
 | Error | Response |
 |-------|----------|
-| Meeting type unknown | List available types |
+| Meeting type unknown | List available types and ask which one |
 | No calendar entry | Use defaults, note missing calendar |
 | No items found | Generate minimal agenda with standing items |
 | GitHub API error | Skip GitHub items, note in output |
@@ -145,8 +152,8 @@ Decisions Needed (2)
 - Read calendar.org
 - Query GitHub via `gh` CLI
 - Read org files for tasks
-- Write to journal/team spaces (with --post)
-- Create GitHub issues (with --github)
+- Write to journal/team spaces (with post)
+- Create GitHub issues (with github flag)
 
 **YOU CANNOT:**
 - Modify existing tasks
@@ -157,3 +164,4 @@ Decisions Needed (2)
 - Include source links for all items
 - Respect meeting duration limits
 - Flag items needing pre-meeting prep
+- Offer follow-up options after generation

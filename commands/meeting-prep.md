@@ -2,45 +2,32 @@
 
 Prepare for a specific meeting with full context and pre-research.
 
-## Usage
+## Workflow
 
-```
-/meeting-prep <type> [--date YYYY-MM-DD] [--research]
-```
+### Step 1: Understand Intent
 
-## Options
+If invoked as just `/meeting-prep` with no meeting type, ask:
 
-| Option | Description |
-|--------|-------------|
-| `type` | Meeting type: `daily`, `weekly-exec`, `comms-weekly`, `verity-product` |
-| `--date` | Target date (default: next occurrence) |
-| `--research` | Trigger AI research on open questions |
+"Which meeting would you like to prepare for?"
 
-## Difference from /meeting-agenda
+1. **Daily** - Quick standup prep
+2. **Weekly Exec** - Strategic review preparation
+3. **Comms Weekly** - Content and campaigns focus
+4. **Product** - Technical deep-dive (Verity, Santorio)
 
-| Command | Purpose | When to Use |
-|---------|---------|-------------|
-| `/meeting-agenda` | Generate shareable agenda document | 1 day before, for distribution |
-| `/meeting-prep` | Personal preparation with full context | 2-3 days before, for research |
+If context is clear (e.g., "prepare for tomorrow's weekly"), proceed directly.
 
-`/meeting-prep` includes:
-- AI research on questions
-- Your action items for prep
-- Context from past meetings
-- Stakeholder preparation status
+### Step 2: Gather Context
 
-## Algorithm
+**Ask if not provided:**
+- "Which date?" (default: next occurrence)
+- "Should I research open questions?" (triggers AI research)
 
-### Step 1: Identify Meeting
+**Auto-detect:**
+- From calendar.org, find next occurrence of meeting type
+- Extract date, time, duration, attendees
 
-From `calendar.org`, find next occurrence of meeting type:
-```org
-* Weekly Exec
-  <2025-12-19 Thu 14:00-14:45>
-  - Attendees: @gregor, @crt, @tadej
-```
-
-### Step 2: Gather Preparation Context
+### Step 3: Gather Preparation Data
 
 **Open Questions (GitHub):**
 ```bash
@@ -62,59 +49,47 @@ Scan `next_actions.org` for items that should be on the agenda:
 | `:blocked:` with team dependency | Blockers section |
 | `[#A]` + deadline in 7 days | Strategic items |
 | `:investor:` or `:roadmap:` | Strategic items |
-| Blocking another team member | Blocking Others |
 
-**Escalated Items (org-mode):**
+**Escalated Items:**
 Query `next_actions.org` for `:DAILY_COUNT:` >= 3
 
 **Past Meeting Context:**
 - Search journals for previous meeting notes
 - Look for unresolved action items
 
-### Step 3: Trigger AI Research (if --research)
+### Step 4: Trigger AI Research (if requested)
 
 For each open question without `researched` label:
 1. Invoke `question-researcher` agent
 2. Add research summary to GitHub issue
 3. Add `researched` label
 
-### Step 4: Check Stakeholder Preparation
+### Step 5: Check Stakeholder Preparation
 
 For each question with stakeholders:
 - Check if they've commented on the issue
 - Check if assigned tasks are complete
 - Flag items with missing input
 
-### Step 5: Generate Preparation Report
+### Step 6: Generate Preparation Report
 
 **Sections:**
 
-1. **Meeting Overview**
-   - Type, date, duration, attendees
-   - Days until meeting
+1. **Meeting Overview** - Type, date, duration, attendees
+2. **Your Preparation Tasks** - Questions needing your input
+3. **Open Questions Status** - Ready, needs research, waiting
+4. **Escalated Items** - Items appearing 3+ times in dailies
+5. **Context from Past Meetings** - Relevant decisions
+6. **Stakeholder Status** - Who has/hasn't prepared
 
-2. **Your Preparation Tasks**
-   - Questions needing your input
-   - Items you're responsible for
-   - Deadlines before meeting
+### Step 7: Follow-up
 
-3. **Open Questions Status**
-   - Ready for discussion (researched)
-   - Needs research (trigger with --research)
-   - Waiting for input (blocked on someone)
+After generating prep report, offer next steps:
 
-4. **Escalated Items**
-   - Items appearing 3+ times in dailies
-   - Context on why they're stuck
-
-5. **Context from Past Meetings**
-   - Relevant decisions from recent meetings
-   - Unresolved action items
-
-6. **Stakeholder Status**
-   - Who has prepared
-   - Who needs to prepare
-   - Missing inputs
+"Preparation report ready. Would you like to:"
+- "Trigger AI research on open questions?" → Run with research
+- "Generate the shareable agenda?" → `/meeting-agenda`
+- "See all open questions?" → `/my-questions`
 
 ## Output Example
 
@@ -135,16 +110,11 @@ Your Tasks for Agenda
 ---------------------
 Decisions Needed:
   - [#A] Finalize investor pitch approach :decision:
-    Deadline: Dec 22 (before investor meeting)
   - Choose between Next.js vs Remix :decision:@team:
-    Context: Affects Q1 roadmap
 
 Discussion Items:
   - Review Verity pricing model :discuss:
   - Sprint velocity concerns :@team:
-
-Blocking Others:
-  - Review PR #42 (blocking @tadej since Dec 15)
 
 Open Questions (4)
 ------------------
@@ -152,71 +122,46 @@ Ready for Discussion:
   - [#42] Database selection (AI researched)
   - [#38] API rate limiting (AI researched)
 
-Needs Research (run with --research):
+Needs Research:
   - [#47] OAuth provider comparison
-
-Waiting for Input:
-  - [#45] Pricing tiers - waiting for @gregor (you)
-
-Escalated from Daily (2)
-------------------------
-1. API authentication approach
-   - 4 appearances since Dec 12
-   - Blocker: Needs security review
-
-2. Database migration timing
-   - 3 appearances since Dec 14
-   - Context: Depends on #42 decision
 
 Stakeholder Status
 ------------------
 @crt: Ready (commented on 2/3 questions)
 @tadej: Needs prep (no comments yet)
-@gregor: Action needed (1 question waiting, 1 blocking review)
-
-Context from Past Meetings
---------------------------
-Dec 12 Weekly:
-  - Decided to delay Series A until Q1
-  - Action: @gregor to update investor timeline (DONE)
-
-Dec 5 Weekly:
-  - Discussed database options, no decision
-  - Escalated to this week
+@gregor: Action needed (1 question waiting)
 
 ---
 Run '/meeting-prep weekly-exec --research' to trigger AI research
 ```
 
-## Integration
+## Difference from /meeting-agenda
 
-### With /today
-
-If meeting is today or tomorrow:
-```
-📅 Meeting Prep Reminder
-   Weekly Exec in 1 day (Thu 14:00)
-   - 2 questions need your input
-   - Run: /meeting-prep weekly-exec
-```
-
-### With /meeting-agenda
-
-After preparation is complete:
-```
-✓ Preparation complete
-  Run: /meeting-agenda weekly-exec --post
-  to generate and distribute the agenda
-```
+| Command | Purpose | When to Use |
+|---------|---------|-------------|
+| `/meeting-prep` | Personal preparation with full context | 2-3 days before, for research |
+| `/meeting-agenda` | Generate shareable agenda document | 1 day before, for distribution |
 
 ## Error Handling
 
 | Error | Response |
 |-------|----------|
-| Meeting not in calendar | Show next scheduled or use defaults |
+| Meeting not in calendar | Show next scheduled or offer to use defaults |
 | No questions found | Note "No open questions", focus on escalations |
 | GitHub unavailable | Show cached data, note limitation |
-| --research fails | List failed items, suggest retry |
+| Research fails | List failed items, suggest retry |
+
+## Configuration
+
+Settings in `settings.local.yaml`:
+
+```yaml
+meetings:
+  questions:
+    github_label: "question"
+    auto_research: true
+    research_model: haiku
+```
 
 ## Your Boundaries
 
@@ -224,7 +169,7 @@ After preparation is complete:
 - Read calendar.org
 - Query GitHub Issues
 - Read org files and journals
-- Invoke question-researcher agent (with --research)
+- Invoke question-researcher agent (with research)
 - Add comments and labels to GitHub issues
 
 **YOU CANNOT:**
@@ -236,3 +181,4 @@ After preparation is complete:
 - Highlight items requiring user action
 - Show clear deadlines
 - Provide context for informed preparation
+- Offer follow-up options after generation
