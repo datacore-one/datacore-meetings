@@ -19,3 +19,13 @@ Thumbs.db
 
 # Secrets (tokens handled by central .datacore/env/)
 *.pickle
+
+# Layered context (DIP-0002)
+CLAUDE.md
+CLAUDE.space.md
+CLAUDE.local.md
+*.local.md
+*.space.md
+
+# Local config
+*.local.yaml
