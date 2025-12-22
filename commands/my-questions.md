@@ -1,5 +1,45 @@
 # /my-questions
 
+## Command Context
+
+### When to Reference Meetings Module
+
+**Always reference when:**
+- Checking what questions need your input
+- Reviewing which questions are ready for discussion
+- Triggering research on unresearched questions
+- Understanding question preparation status across projects
+
+**Key decisions the module informs:**
+- Which questions need your response before meetings
+- What factual questions could benefit from AI research
+- Which questions are ready vs need preparation
+- How questions map to upcoming meetings
+
+### Quick Reference
+
+| Question | Answer |
+|----------|--------|
+| When to run? | Before meeting prep, or when checking question status |
+| What does it show? | Open GitHub Issues with question label, grouped by status |
+| Can it trigger research? | Yes, with --research flag |
+| What filters are available? | By project, by meeting type, by your involvement |
+
+### Agents This Command Invokes
+
+| Agent | Purpose |
+|-------|---------|
+| question-researcher | Research unresearched questions (with --research flag) |
+
+### Integration Points
+
+- **GitHub Issues** - Primary data source (question label)
+- **/meeting-prep** - Questions feed into preparation workflow
+- **/meeting-agenda** - Questions appear in generated agendas
+- **/today** - Shows count of questions needing input
+
+---
+
 View open questions requiring your input before meetings.
 
 ## Workflow

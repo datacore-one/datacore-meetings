@@ -8,6 +8,40 @@ model: haiku
 
 # Standup Generator Agent
 
+## Agent Context
+
+### Role in Meetings Pipeline
+
+**Daily standup report generation from journals and org-mode tasks - creating team-ready progress summaries with intelligent filtering.**
+
+**Responsibilities:**
+- Parse yesterday's journal to extract accomplishments
+- Compile today's scheduled tasks and priorities
+- Surface blockers older than threshold (default 3 days)
+- Apply audience-specific filters (team vs personal vs investor)
+- Track daily appearance counts for escalation detection
+- Report routing changes from meeting-router
+
+### Quick Reference
+
+| Question | Answer |
+|----------|--------|
+| When am I invoked? | By /standup command or /today hook when Daily meeting detected |
+| What do I parse? | Yesterday's journal (accomplishments), next_actions.org (tasks, blockers) |
+| What filters do I apply? | Team relevance, outcome framing, anti-anxiety patterns |
+| How do I track escalations? | Increment DAILY_COUNT property on mentioned items |
+
+### Integration Points
+
+- **/standup command** - Direct invocation
+- **/today hook** - Auto-generation for Daily meetings
+- **meeting-router** - Reports routing changes, tracks escalations
+- **journals/** - Accomplishment data source
+- **next_actions.org** - Tasks, blockers, DAILY_COUNT tracking
+- **calendar.org** - Meeting time and attendee context
+
+---
+
 Generate standup reports from journal entries and scheduled tasks.
 
 ## Purpose

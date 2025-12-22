@@ -1,5 +1,46 @@
 # Meetings Hook: /today Integration
 
+## Command Context
+
+### When to Reference Meetings Module
+
+**Always reference when:**
+- Running /today command with Daily meeting scheduled
+- Auto-generating standup for team meetings
+- Need standup preview in daily briefing
+- Calendar.org contains meeting matching standup_meeting_match setting
+
+**Key decisions the module informs:**
+- Whether to auto-generate standup based on calendar
+- What data sources to use for standup content
+- How to format standup for inline display in briefing
+- When to skip generation (already exists, disabled, no meeting)
+
+### Quick Reference
+
+| Question | Answer |
+|----------|--------|
+| When is this hook triggered? | By /today command, after priority tasks generated |
+| What activates it? | Daily meeting in calendar + auto_generate_standup: true |
+| What does it add? | Standup Preview section to daily briefing |
+| Where is it inserted? | After Priority Tasks, before Today's Meetings |
+
+### Agents This Command Invokes
+
+| Agent | Purpose |
+|-------|---------|
+| standup-generator | Generate standup from yesterday's journal and today's tasks |
+
+### Integration Points
+
+- **/today command** - Primary integration point
+- **calendar.org** - Meeting detection and attendee info
+- **standup-generator** - Core standup generation
+- **journals/** - Yesterday's accomplishments and today's briefing
+- **settings.yaml** - auto_generate_standup configuration
+
+---
+
 This hook adds standup generation to the daily briefing when a Daily meeting is detected.
 
 ## Trigger

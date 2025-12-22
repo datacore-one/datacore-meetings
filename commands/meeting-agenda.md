@@ -1,5 +1,48 @@
 # /meeting-agenda
 
+## Command Context
+
+### When to Reference Meetings Module
+
+**Always reference when:**
+- Creating shareable agenda 1 day before meeting
+- Need to distribute agenda to team members
+- Want to ensure all relevant items are included
+- Creating GitHub issue for meeting tracking
+
+**Key decisions the module informs:**
+- Which items belong in this meeting vs others
+- What research is ready for discussion
+- Which escalated items need team attention
+- How to structure agenda for meeting duration
+
+### Quick Reference
+
+| Question | Answer |
+|----------|--------|
+| When to run? | 1 day before meeting (for distribution) |
+| What meeting types? | daily, weekly-exec, comms-weekly, product |
+| Where is output posted? | Team space, GitHub issue, or stdout |
+| What sources does it use? | GitHub Issues, org-mode tasks, escalations, calendar |
+
+### Agents This Command Invokes
+
+| Agent | Purpose |
+|-------|---------|
+| agenda-generator | Compile items from all sources, apply templates |
+| meeting-router | Ensure items are in correct meeting, detect escalations |
+| question-researcher | (indirectly) Research summaries appear in agenda |
+
+### Integration Points
+
+- **/meeting-prep** - Run prep first, then generate agenda
+- **GitHub Issues** - Questions and product issues
+- **next_actions.org** - Tasks, escalations, decisions needed
+- **templates/** - Meeting-specific agenda formats
+- **calendar.org** - Meeting metadata
+
+---
+
 Generate a structured agenda for a specific meeting type.
 
 ## Workflow

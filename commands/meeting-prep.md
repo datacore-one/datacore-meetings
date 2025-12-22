@@ -1,5 +1,47 @@
 # /meeting-prep
 
+## Command Context
+
+### When to Reference Meetings Module
+
+**Always reference when:**
+- Preparing 2-3 days before important meetings
+- Need to research open questions before discussions
+- Want to identify what prep work is needed from you or stakeholders
+- Reviewing escalated items before weekly meetings
+
+**Key decisions the module informs:**
+- Which questions need AI research before the meeting
+- What preparation tasks require your input
+- Whether stakeholders have prepared adequately
+- What context from past meetings is relevant
+
+### Quick Reference
+
+| Question | Answer |
+|----------|--------|
+| When to run? | 2-3 days before meeting (allows time for research) |
+| What does it check? | Open questions, escalated items, stakeholder prep status |
+| Does it trigger research? | Yes, with --research flag |
+| What's the output? | Personal preparation report with action items |
+
+### Agents This Command Invokes
+
+| Agent | Purpose |
+|-------|---------|
+| question-researcher | Research open questions (with --research flag) |
+| agenda-generator | Gather candidate agenda items |
+| meeting-router | Determine which items belong in this meeting |
+
+### Integration Points
+
+- **GitHub Issues** - Open questions data source
+- **next_actions.org** - Your tasks needing discussion, escalated items
+- **calendar.org** - Meeting details (date, time, attendees)
+- **/meeting-agenda** - Next step after prep is generating shareable agenda
+
+---
+
 Prepare for a specific meeting with full context and pre-research.
 
 ## Workflow

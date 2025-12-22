@@ -1,5 +1,45 @@
 # /standup
 
+## Command Context
+
+### When to Reference Meetings Module
+
+**Always reference when:**
+- Preparing for daily team sync meetings
+- Need to share progress updates with team
+- Generating chat-friendly standup for Slack/Discord
+- Tracking blockers that appear repeatedly
+
+**Key decisions the module informs:**
+- What accomplishments are team-relevant vs personal
+- Which blockers need escalation to weekly meetings
+- How to frame progress for different audiences (team, investor, product)
+
+### Quick Reference
+
+| Question | Answer |
+|----------|--------|
+| When to run? | Morning of daily meeting, or via /today auto-generation |
+| What does it parse? | Yesterday's journal, today's tasks from next_actions.org |
+| What filters apply? | Team relevance, outcome framing, anti-anxiety patterns |
+| Where is output posted? | Today's journal, optionally exported for chat |
+
+### Agents This Command Invokes
+
+| Agent | Purpose |
+|-------|---------|
+| standup-generator | Parse journals, extract accomplishments, apply filters, track escalations |
+| meeting-router | Report routing changes (items escalated to weekly) |
+
+### Integration Points
+
+- **/today command** - Auto-invokes standup when Daily meeting detected
+- **calendar.org** - Provides meeting time and attendee context
+- **journals/** - Source for yesterday's accomplishments
+- **next_actions.org** - Source for tasks and blockers
+
+---
+
 Generate a standup report from yesterday's journal and today's schedule.
 
 ## Workflow

@@ -1,5 +1,48 @@
 # /meeting-process
 
+## Command Context
+
+### When to Reference Meetings Module
+
+**Always reference when:**
+- Processing meeting transcripts after meetings
+- Extracting action items from discussions
+- Capturing decisions made during meetings
+- Resolving questions that were discussed
+- Creating knowledge artifacts from meeting insights
+
+**Key decisions the module informs:**
+- What action items have sufficient confidence to auto-create
+- Which discussed questions can be closed or updated
+- What knowledge should be extracted as zettels
+- How to map transcript speakers to team members
+
+### Quick Reference
+
+| Question | Answer |
+|----------|--------|
+| When to run? | After meetings, when transcript is available |
+| What sources? | Google Docs transcripts, local transcript files |
+| What does it create? | Tasks, zettels, journal entries, GitHub comments |
+| What's the confidence threshold? | Configurable (default 0.7 for tasks, 0.8 for decisions) |
+
+### Agents This Command Invokes
+
+| Agent | Purpose |
+|-------|---------|
+| transcription-processor | Parse transcript, extract items, update GitHub, create artifacts |
+
+### Integration Points
+
+- **Google Docs API** - Fetch Meet transcripts
+- **transcription_parser.py** - Core parsing library
+- **GitHub Issues** - Update/close questions discussed
+- **next_actions.org** - Create tasks from action items
+- **notes/journals/** - Record decisions and summary
+- **notes/2-knowledge/zettel/** - Extract insights as zettels
+
+---
+
 Process meeting transcription to extract action items, decisions, knowledge, and resolve questions.
 
 ## Workflow

@@ -8,6 +8,39 @@ model: sonnet
 
 # Question Researcher Agent
 
+## Agent Context
+
+### Role in Meetings Pipeline
+
+**Pre-meeting research agent for open questions - providing AI-generated recommendations and context to enable faster, better-informed decisions.**
+
+**Responsibilities:**
+- Classify questions by decision framework (Lead Domino, Important, Quick Win, Trivial)
+- Research factual questions using knowledge base, codebase, and web sources
+- Generate recommendations with confidence levels and rationale
+- Identify stakeholders needed for final decision
+- Create follow-up tasks for pre-meeting preparation
+
+### Quick Reference
+
+| Question | Answer |
+|----------|--------|
+| When am I invoked? | By /meeting-prep --research or /my-questions --research |
+| What do I research? | GitHub Issues with question label that lack researched label |
+| What's my model? | Sonnet (for quality research) |
+| Where does research go? | GitHub issue comment with "AI Research" section |
+
+### Integration Points
+
+- **/meeting-prep command** - Triggers batch research for upcoming meetings
+- **/my-questions command** - Research individual questions on demand
+- **agenda-generator** - Research summaries appear in agendas
+- **GitHub Issues** - Research posted as comments, researched label added
+- **knowledge/** - Internal decision and architecture context
+- **WebSearch** - External best practices and comparisons
+
+---
+
 Pre-research factual questions before meetings to enable informed discussions.
 
 ## Purpose

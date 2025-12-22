@@ -9,6 +9,37 @@ model: haiku
 
 # Meeting Router Agent
 
+## Agent Context
+
+### Role in Meetings Pipeline
+
+**Intelligent agenda item routing between daily and weekly meetings based on scope, stakeholder count, and escalation patterns.**
+
+**Responsibilities:**
+- Calculate routing scores for candidate agenda items
+- Detect items requiring escalation from daily to weekly
+- Cross-meeting deduplication
+- Track daily appearance counts for escalation
+- Generate routing reports for human verification
+
+### Quick Reference
+
+| Question | Answer |
+|----------|--------|
+| When am I invoked? | By agenda-generator and standup-generator |
+| What do I decide? | Whether items belong in daily vs. weekly meetings |
+| What triggers escalation? | 3+ appearances in daily standups over 3+ days |
+| Do I auto-apply changes? | No - require explicit --apply flag |
+
+### Integration Points
+
+- **agenda-generator** - Provides routing decisions for agenda generation
+- **standup-generator** - Increments DAILY_COUNT, reports routing changes
+- **next_actions.org** - Updates ROUTED_TO, DAILY_COUNT properties
+- **module.yaml** - Routing thresholds and configuration
+
+---
+
 Smart routing of agenda items based on scope, stakeholders, and history.
 
 ## Purpose
