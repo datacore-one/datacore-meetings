@@ -1,4 +1,13 @@
-# /meeting-agenda
+# /meeting-agenda (DEPRECATED)
+
+> **DEPRECATED**: This command has been superseded by meeting-type commands:
+> - Use `/weekly [team]` for weekly team meetings
+> - Use `/standup` for daily standups
+>
+> The agenda generation logic is now in the `agenda-generator` agent, which is
+> invoked by the meeting-type commands. This file is kept for reference only.
+>
+> See: `commands/weekly.md` for the new workflow.
 
 ## Command Context
 

@@ -3,6 +3,7 @@ name: agenda-generator
 description: |
   Generate meeting agendas from multiple sources: open questions (GitHub),
   escalated items (org-mode), and GitHub issues (for product meetings).
+  Produces outcome-driven agendas with pre-meeting prep identification.
 model: haiku
 ---
 
@@ -17,22 +18,24 @@ model: haiku
 **Responsibilities:**
 - Gather agenda items from GitHub issues, org-mode tasks, and escalated items
 - Apply routing rules to ensure items are in appropriate meetings
+- Generate outcome-driven agenda items (explicit goals per item)
+- Identify pre-meeting preparation tasks per attendee
 - Render meeting-specific agendas using templates
 - Cross-meeting deduplication
-- Generate shareable agenda documents
 
 ### Quick Reference
 
 | Question | Answer |
 |----------|--------|
-| When am I invoked? | By /meeting-agenda command, 1 day before meetings |
+| When am I invoked? | By /weekly, /standup, and other meeting-type commands |
 | What sources do I query? | GitHub Issues (questions), next_actions.org (tasks, escalations), calendar.org (meeting details) |
-| What do I produce? | Formatted agenda using meeting-specific templates |
+| What do I produce? | Formatted agenda with outcomes and pre-meeting prep |
 | Which meetings do I support? | daily, weekly-exec, comms-weekly, verity-product |
 
 ### Integration Points
 
-- **/meeting-agenda command** - Primary invocation point
+- **/weekly command** - Primary invoker for weekly meetings
+- **/standup command** - Primary invoker for daily standups
 - **meeting-router** - Provides routing decisions for item placement
 - **question-researcher** - Research summaries appear in agenda
 - **templates/** - Meeting-specific agenda formats
@@ -275,16 +278,96 @@ def deduplicate_for_meeting(items, meeting_type):
     return deduped
 ```
 
-### Phase 5: Generate Agenda
+### Phase 5: Add Outcomes per Item (Learned Pattern)
+
+Every agenda item must have an explicit goal/outcome:
+
+**Goal types:**
+- **Decision**: "Decide whether to proceed with X"
+- **Alignment**: "Agree on approach for Y"
+- **Update**: "Share status on Z (no discussion needed)"
+- **Brainstorm**: "Generate options for W"
+- **Review**: "Review and approve V"
+
+**Auto-generate goals based on item pattern:**
+
+| Item Pattern | Auto-Generated Goal |
+|--------------|---------------------|
+| PR discussion | "Decide: merge, request changes, or close" |
+| Blocker item | "Unblock: identify owner and next step" |
+| Status update | "Update: share progress, surface blockers" |
+| New feature | "Align: agree on approach" |
+| Process issue | "Decide: adopt, modify, or reject proposal" |
+| GitHub issue | Derive from issue labels (bug → fix, feature → align) |
+
+**Template per item:**
+```markdown
+### [Topic] (Xmin) - @owner
+**Goal**: [Specific outcome in one sentence]
+- Key point 1
+- Key point 2
+**Pre-work**: [What attendees should review/prepare]
+**References**: [Links to relevant docs/issues]
+```
+
+**Time allocation guidelines:**
+| Goal Type | Duration |
+|-----------|----------|
+| Update | 5-10min |
+| Decision | 10-15min |
+| Alignment | 10-15min |
+| Brainstorm | 15-20min |
+| Review | varies |
+
+### Phase 6: Identify Pre-Meeting Preparation (Learned Pattern)
+
+For each substantive agenda item, identify required prep:
+
+**Categories of pre-work:**
+1. **Read**: Documents that must be reviewed
+2. **Prepare**: Updates/presentations someone must bring
+3. **Decide**: Decisions to make before meeting
+4. **Research**: Information to gather beforehand
+
+**Auto-detect prep requirements:**
+| Item Type | Prep Required |
+|-----------|---------------|
+| GitHub Issue discussion | "Review #issue" |
+| PR review needed | "Review PR #N" |
+| Decision item | "Prepare position on X" |
+| Status update | "Prepare update on X" |
+| Document reference | "Read [doc]" |
+
+**Assignment rules:**
+- If item has owner → they prepare
+- If item has assignee → they prepare
+- If item references doc → all attendees read
+- Otherwise → flag for manual assignment
+
+**Output format:**
+```markdown
+## Pre-Meeting Preparation
+- [ ] @gregor: Review DMCC proposal draft, finalize numbers
+- [ ] @crt: Prepare Verity sprint status update
+- [ ] @tadej: Review #220, come with questions
+```
+
+### Phase 7: Generate Agenda
 
 1. Load template for meeting type
-2. Populate with gathered items
+2. Populate with gathered items (including outcomes and prep)
 3. Apply max_items limit per section
 4. Add metadata (date, time, attendees)
+5. Include pre-meeting preparation section at top
 
 ## Output
 
-Rendered agenda markdown using the appropriate template.
+Rendered agenda markdown with:
+- Meeting info (date, time, duration, attendees)
+- Pre-meeting preparation checklist
+- Agenda items with goals, time, owners
+- References to GitHub issues and docs
+- Coming Up section for future awareness
 
 ## Edge Cases
 

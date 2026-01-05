@@ -21,15 +21,21 @@ optional:
 
 provides:
   commands:
-    - standup         # Generate standup from journal + schedule
-    - meeting-prep    # Prepare for specific meeting with context
-    - meeting-agenda  # Generate shareable agenda document
+    # Meeting-type commands (primary entry points)
+    - weekly          # Full weekly prep workflow: agenda → GitHub Issue → calendar + invites
+    - standup         # Generate standup from journal + schedule for daily meetings
+
+    # Support commands
+    - meeting-prep    # Personal prep for any meeting with context (no issue/calendar)
     - my-questions    # View open questions requiring input
     - meeting-process # Process transcripts, extract actions (Phase 3)
 
+    # Deprecated (use meeting-type commands instead)
+    # - meeting-agenda  # Now internal agent (agenda-generator), called by /weekly, /standup
+
   agents:
     - standup-generator       # Parse journal, extract accomplishments
-    - agenda-generator        # Generate agendas from multiple sources
+    - agenda-generator        # Generate agendas with outcomes + pre-meeting prep (called by /weekly, /standup)
     - question-researcher     # Pre-research open questions
     - transcription-processor # Extract actions/decisions from transcripts (Phase 3)
     - meeting-router          # Smart routing between meetings (Phase 4)
@@ -251,6 +257,53 @@ settings:
           - standup
           - blockers
           - escalation_candidates
+
+      # Team weekly meetings (primary /weekly targets)
+      weekly-datafund:
+        name: "Datafund Weekly"
+        duration: 90
+        template: "agenda-weekly"
+        calendar_match: "Weekly Datafund"
+        github_repo: "datafund/verity"
+        escalate_from_daily: true
+        attendees:
+          - email: "gregor@datafund.io"
+            role: organizer
+            github: "@gregor"
+          - email: "crt@datafund.io"
+            role: attendee
+            github: "@crtahlin"
+          - email: "tadej@datafund.io"
+            role: attendee
+            github: "@tadej"
+        standing_items:
+          - "Business Update"
+          - "Coming Up"
+        sources:
+          - escalated
+          - questions
+          - strategic
+          - github_issues
+          - github_prs
+
+      weekly-datacore:
+        name: "Datacore Weekly"
+        duration: 60
+        template: "agenda-weekly"
+        calendar_match: "Weekly Datacore"
+        github_repo: "datacore-one/datacore"
+        escalate_from_daily: true
+        attendees:
+          - email: "gregor@datacore.one"
+            role: organizer
+            github: "@gregor"
+        sources:
+          - escalated
+          - questions
+          - github_issues
+          - github_prs
+
+      # Legacy configs (deprecated, use team-specific)
       weekly-exec:
         name: "Weekly Exec"
         duration: 45
@@ -262,6 +315,7 @@ settings:
           - questions
           - strategic
           - metrics
+
       comms-weekly:
         name: "Comms Weekly"
         duration: 45
@@ -270,13 +324,21 @@ settings:
         sources:
           - content_pipeline
           - campaigns
+
       verity-product:
         name: "Verity Product Call"
         duration: 60
         template: "agenda-product"
         calendar_match: "Verity"
-        github_repo: "datacore-one/verity"
+        github_repo: "datafund/verity"
         pull_issues: true
+        attendees:
+          - email: "gregor@datafund.io"
+            role: organizer
+          - email: "crt@datafund.io"
+            role: attendee
+          - email: "tadej@datafund.io"
+            role: attendee
         sources:
           - github_issues
           - github_prs
@@ -286,16 +348,18 @@ settings:
 hooks:
   today: "commands/today-hook.md"
   weekly_review: "commands/weekly-hook.md"
+  gtd_weekly_review: "commands/weekly-hook.md"  # Also triggered by /gtd-weekly-review
   post_install: |
     echo "Meetings module installed."
     echo ""
     echo "Your journal remembers. AI prepares."
     echo ""
     echo "Quick start:"
-    echo "  1. Run /standup to generate a standup report"
-    echo "  2. Run /meeting-prep weekly-exec to prepare for meetings"
+    echo "  1. Run /standup to generate daily standup"
+    echo "  2. Run /weekly datafund to prepare weekly team call"
+    echo "     → Creates GitHub Issue + updates calendar + sends invites"
     echo "  3. Run /my-questions to see open questions"
-    echo "  4. Configure meeting_types in settings for custom meetings"
+    echo "  4. Configure meeting_types in settings for custom teams"
 
 use_cases:
   - Generate zero-input standups from yesterday's journal

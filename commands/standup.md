@@ -29,11 +29,13 @@
 | Agent | Purpose |
 |-------|---------|
 | standup-generator | Parse journals, extract accomplishments, apply filters, track escalations |
+| agenda-generator | Generate daily agenda with outcomes (if --agenda flag) |
 | meeting-router | Report routing changes (items escalated to weekly) |
 
 ### Integration Points
 
 - **/today command** - Auto-invokes standup when Daily meeting detected
+- **/weekly command** - Sibling command for weekly meetings
 - **calendar.org** - Provides meeting time and attendee context
 - **journals/** - Source for yesterday's accomplishments
 - **next_actions.org** - Source for tasks and blockers
