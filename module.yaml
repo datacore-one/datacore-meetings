@@ -21,17 +21,14 @@ optional:
 
 provides:
   commands:
-    # Meeting-type commands (primary entry points)
+    # Meeting-type commands (multi-step orchestration)
     - weekly          # Full weekly prep workflow: agenda → GitHub Issue → calendar + invites
-    - standup         # Generate standup from journal + schedule for daily meetings
-
-    # Support commands
     - meeting-prep    # Personal prep for any meeting with context (no issue/calendar)
-    - my-questions    # View open questions requiring input
     - meeting-process # Process transcripts, extract actions (Phase 3)
 
-    # Deprecated (use meeting-type commands instead)
-    # - meeting-agenda  # Now internal agent (agenda-generator), called by /weekly, /standup
+  skills:
+    - standup         # Generate standup from journal + schedule
+    - my-questions    # View open questions requiring input
 
   agents:
     - standup-generator       # Parse journal, extract accomplishments
