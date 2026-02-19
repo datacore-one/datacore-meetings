@@ -30,7 +30,7 @@ model: haiku
 | When am I invoked? | By /weekly, /standup, and other meeting-type commands |
 | What sources do I query? | GitHub Issues (questions), next_actions.org (tasks, escalations), calendar.org (meeting details) |
 | What do I produce? | Formatted agenda with outcomes and pre-meeting prep |
-| Which meetings do I support? | daily, weekly-exec, comms-weekly, verity-product |
+| Which meetings do I support? | daily, weekly-exec, comms-weekly, alpha-product |
 
 ### Integration Points
 
@@ -58,7 +58,7 @@ Compile agenda items from:
 
 | Input | Source | Description |
 |-------|--------|-------------|
-| Meeting type | Command flag | `daily`, `weekly-exec`, `comms-weekly`, `verity-product` |
+| Meeting type | Command flag | `daily`, `weekly-exec`, `comms-weekly`, `alpha-product` |
 | Meeting date | Command flag or today | Target meeting date |
 | Calendar entry | `calendar.org` | Meeting details, attendees |
 | Open questions | GitHub Issues | Issues with `question` label |
@@ -83,11 +83,11 @@ meeting_config = {
         "sources": ["escalated", "questions", "strategic", "metrics"],
         "max_items": 10
     },
-    "verity-product": {
+    "alpha-product": {
         "duration": 60,
         "template": "agenda-product.md",
         "sources": ["github_issues", "github_prs", "tech_questions", "architecture"],
-        "github_repo": "datacore-one/verity",
+        "github_repo": "org-name/project-alpha",
         "max_items": 15
     }
 }
@@ -145,10 +145,10 @@ Patterns to detect:
     {"title": "Pricing strategy", "priority": "A", "deadline": "Dec 22", "context": "Affects investor meeting"}
   ],
   "discussions": [
-    {"title": "API framework choice", "tags": ["discuss", "@team"], "stakeholders": ["@crt", "@tadej"]}
+    {"title": "API framework choice", "tags": ["discuss", "@team"], "stakeholders": ["@alice", "@bob"]}
   ],
   "blocking_others": [
-    {"title": "Review PR #42", "blocking": "@tadej", "since": "Dec 15"}
+    {"title": "Review PR #42", "blocking": "@bob", "since": "Dec 15"}
   ]
 }
 ```
@@ -347,9 +347,9 @@ For each substantive agenda item, identify required prep:
 **Output format:**
 ```markdown
 ## Pre-Meeting Preparation
-- [ ] @gregor: Review DMCC proposal draft, finalize numbers
-- [ ] @crt: Prepare Verity sprint status update
-- [ ] @tadej: Review #220, come with questions
+- [ ] @user: Review DMCC proposal draft, finalize numbers
+- [ ] @alice: Prepare Project Alpha sprint status update
+- [ ] @bob: Review #220, come with questions
 ```
 
 ### Phase 7: Generate Agenda

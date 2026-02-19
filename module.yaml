@@ -80,8 +80,8 @@ settings:
   team_space_mappings:
     description: "Map team names to space directories"
     default:
-      datafund: "1-datafund"
-      datacore: "2-datacore"
+      teamspace: "1-teamspace"
+      projectspace: "2-projectspace"
 
   personal_filters:
     description: "Keywords indicating personal items to filter in team mode"
@@ -105,18 +105,18 @@ settings:
   project_keywords:
     description: "Map project/product names to spaces for auto-detection"
     default:
-      verity:
-        keywords: ["verity", "data marketplace", "data RWA"]
-        space: datafund
-      santorio:
-        keywords: ["santorio", "health data", "longevity"]
-        space: datafund
+      project-alpha:
+        keywords: ["project alpha", "data marketplace", "data RWA"]
+        space: teamspace
+      project-beta:
+        keywords: ["project beta", "health data", "longevity"]
+        space: teamspace
       datacore:
         keywords: ["datacore", "module", "agent", "GTD"]
-        space: datacore
-      fds:
-        keywords: ["FDS", "fair data", "swarm"]
-        space: datafund
+        space: projectspace
+      partnerorg:
+        keywords: ["PartnerOrg", "partner org", "infrastructure"]
+        space: teamspace
 
   meeting_presets:
     description: "Predefined meeting type configurations"
@@ -231,16 +231,16 @@ settings:
   team_members:
     description: "Map speaker names to team handles"
     default:
-      "Gregor": "@gregor"
-      "Tadej": "@tadej"
-      "CRT": "@crt"
+      "Alice": "@alice"
+      "Bob": "@bob"
+      "Carol": "@carol"
 
   github_repos:
     description: "GitHub repos for question queries per project"
     default:
-      verity: "datacore-one/verity"
-      datafund: "datacore-one/datafund-space"
-      datacore: "datacore-one/datacore"
+      project-alpha: "org-name/project-alpha"
+      teamspace: "org-name/teamspace"
+      datacore: "org-name/datacore"
 
   meeting_types:
     description: "Full meeting type configurations"
@@ -256,23 +256,23 @@ settings:
           - escalation_candidates
 
       # Team weekly meetings (primary /weekly targets)
-      weekly-datafund:
-        name: "Datafund Weekly"
+      weekly-teamspace:
+        name: "Team Weekly"
         duration: 90
         template: "agenda-weekly"
-        calendar_match: "Weekly Datafund"
-        github_repo: "datafund/verity"
+        calendar_match: "Weekly Team"
+        github_repo: "org-name/project-alpha"
         escalate_from_daily: true
         attendees:
-          - email: "gregor@datafund.io"
+          - email: "user@organization.example.com"
             role: organizer
-            github: "@gregor"
-          - email: "crt@datafund.io"
+            github: "@username"
+          - email: "alice@organization.example.com"
             role: attendee
-            github: "@crtahlin"
-          - email: "tadej@datafund.io"
+            github: "@alice"
+          - email: "bob@organization.example.com"
             role: attendee
-            github: "@tadej"
+            github: "@bob"
         standing_items:
           - "Business Update"
           - "Coming Up"
@@ -283,17 +283,17 @@ settings:
           - github_issues
           - github_prs
 
-      weekly-datacore:
-        name: "Datacore Weekly"
+      weekly-projectspace:
+        name: "Project Weekly"
         duration: 60
         template: "agenda-weekly"
-        calendar_match: "Weekly Datacore"
-        github_repo: "datacore-one/datacore"
+        calendar_match: "Weekly Project"
+        github_repo: "org-name/datacore"
         escalate_from_daily: true
         attendees:
-          - email: "gregor@datacore.one"
+          - email: "user@project.example.com"
             role: organizer
-            github: "@gregor"
+            github: "@username"
         sources:
           - escalated
           - questions
@@ -322,19 +322,19 @@ settings:
           - content_pipeline
           - campaigns
 
-      verity-product:
-        name: "Verity Product Call"
+      alpha-product:
+        name: "Project Alpha Product Call"
         duration: 60
         template: "agenda-product"
-        calendar_match: "Verity"
-        github_repo: "datafund/verity"
+        calendar_match: "Project Alpha"
+        github_repo: "org-name/project-alpha"
         pull_issues: true
         attendees:
-          - email: "gregor@datafund.io"
+          - email: "user@organization.example.com"
             role: organizer
-          - email: "crt@datafund.io"
+          - email: "alice@organization.example.com"
             role: attendee
-          - email: "tadej@datafund.io"
+          - email: "bob@organization.example.com"
             role: attendee
         sources:
           - github_issues
@@ -353,7 +353,7 @@ hooks:
     echo ""
     echo "Quick start:"
     echo "  1. Run /standup to generate daily standup"
-    echo "  2. Run /weekly datafund to prepare weekly team call"
+    echo "  2. Run /weekly teamspace to prepare weekly team call"
     echo "     → Creates GitHub Issue + updates calendar + sends invites"
     echo "  3. Run /my-questions to see open questions"
     echo "  4. Configure meeting_types in settings for custom teams"

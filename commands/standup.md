@@ -87,20 +87,20 @@ Read `0-personal/notes/journals/YYYY-MM-DD.md` for yesterday's date.
 
 **Space attribution:**
 Detect which space an accomplishment belongs to:
-- Explicit tags: `[Datafund]`, `[Datacore]`, `(verity)`
-- Wiki-links: `[[Verity]]`, `[[Datafund]]`
+- Explicit tags: `[Team]`, `[Datacore]`, `(project-alpha)`
+- Wiki-links: `[[Project Alpha]]`, `[[Team]]`
 - Keywords: project names, product names
-- File paths mentioned: `/1-datafund/`, `/2-datacore/`
+- File paths mentioned: `/1-teamspace/`, `/2-projectspace/`
 - Default: Personal (0-personal) if no team signal
 
 **Team Project Detection:**
 
 | Project/Product | Keywords | Space |
 |-----------------|----------|-------|
-| Verity | verity, data marketplace, data RWA | datafund |
-| Santorio | santorio, health data, longevity | datafund |
-| Datacore | datacore, module, agent, GTD system | datacore |
-| Fair Data Society | FDS, fair data, swarm | datafund |
+| Project Alpha | project alpha, data marketplace, data RWA | teamspace |
+| Project Beta | project beta, health data, longevity | teamspace |
+| Datacore | datacore, module, agent, GTD system | projectspace |
+| PartnerOrg | partnerorg, partner org, infrastructure | teamspace |
 
 **Quality Validation:**
 
@@ -152,7 +152,7 @@ Detect which space an accomplishment belongs to:
 Include only items that:
 - Relate to shared projects/products
 - Affect team members' work
-- Are in team space (1-datafund, etc.)
+- Are in team space (1-teamspace, etc.)
 
 Exclude:
 - Personal finance tasks
@@ -231,7 +231,7 @@ After generating standup, offer next steps:
 ### Team Standup (Daily meeting)
 
 ```
-STANDUP GENERATED (Team: Datafund)
+STANDUP GENERATED (Team: Team)
 ----------------------------------
 
 Yesterday:

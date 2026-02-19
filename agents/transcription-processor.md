@@ -93,9 +93,9 @@ For each extracted action item:
 Map speaker names to team members:
 ```python
 TEAM_MAPPING = {
-    "Gregor": "@gregor",
-    "Tadej": "@tadej",
-    "CRT": "@crt",
+    "Alice": "@alice",
+    "Bob": "@bob",
+    "Carol": "@carol",
     # ... from settings
 }
 ```

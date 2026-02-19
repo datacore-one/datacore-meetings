@@ -62,11 +62,11 @@ If invoked as just `/weekly` with no team specified:
 
 "Which team's weekly would you like to prepare?"
 
-1. **Datafund** - Weekly Datafund team call
-2. **Datacore** - Weekly Datacore sync
+1. **Team** - Weekly team call
+2. **Project** - Weekly project sync
 3. **Custom** - Specify meeting name
 
-If team is clear from context (e.g., in `1-datafund/` directory), proceed directly.
+If team is clear from context (e.g., in `1-teamspace/` directory), proceed directly.
 
 ### Step 2: Find Existing Calendar Entry
 
@@ -76,7 +76,7 @@ If team is clear from context (e.g., in `1-datafund/` directory), proceed direct
 events = calendar_adapter.get_events(
     start=today,
     end=today + timedelta(days=7),
-    query="Weekly Datafund"  # or team pattern
+    query="Weekly Team"  # or team pattern
 )
 ```
 
@@ -94,18 +94,18 @@ events = calendar_adapter.get_events(
 ```yaml
 # From settings or team config
 attendees:
-  datafund:
-    - gregor@datafund.io
-    - crt@datafund.io
-    - tadej@datafund.io
-  datacore:
-    - gregor@datacore.one
+  teamspace:
+    - user@organization.example.com
+    - alice@organization.example.com
+    - bob@organization.example.com
+  projectspace:
+    - user@project.example.com
 ```
 
 **Check current vs required attendees:**
 - Compare existing event attendees with team config
 - Identify missing invites
-- Note: "@crt and @tadej will be invited"
+- Note: "@alice and @bob will be invited"
 
 **Allow customization:**
 - "Add anyone else to this meeting?"
@@ -226,9 +226,9 @@ For each agenda item, identify prep needed:
 **Output:**
 ```markdown
 ## Pre-Meeting Preparation
-- [ ] @gregor: Review DMCC proposal draft, finalize numbers
-- [ ] @crt: Prepare Verity sprint status update
-- [ ] @tadej: Review #220, come with questions
+- [ ] @user: Review DMCC proposal draft, finalize numbers
+- [ ] @alice: Prepare Project Alpha sprint status update
+- [ ] @bob: Review #220, come with questions
 ```
 
 ### Step 8: Add Outcomes per Item
@@ -254,7 +254,7 @@ If `--create-issue` flag or user confirms:
 ## Meeting Info
 - **Date/Time**: YYYY-MM-DD HH:MM CET
 - **Duration**: 90 min
-- **Attendees**: @gregor, @crt, @tadej
+- **Attendees**: @user, @alice, @bob
 - **Zoom**: [Join Meeting](link)
 
 ## Pre-Meeting Preparation
@@ -293,7 +293,7 @@ from .datacore.lib.sync.adapters.google_calendar import GoogleCalendarAdapter
 import pytz
 
 # Find existing event
-event = adapter.find_event(query="Weekly Datafund", date=meeting_date)
+event = adapter.find_event(query="Weekly Team", date=meeting_date)
 
 # Update description with agenda
 event.description = f"""GitHub Issue: https://github.com/{org}/{repo}/issues/{issue_num}
@@ -303,9 +303,9 @@ event.description = f"""GitHub Issue: https://github.com/{org}/{repo}/issues/{is
 
 # Ensure all team members are invited
 required_attendees = [
-    "gregor@datafund.io",
-    "crt@datafund.io",
-    "tadej@datafund.io"
+    "user@organization.example.com",
+    "alice@organization.example.com",
+    "bob@organization.example.com"
 ]
 for attendee in required_attendees:
     if attendee not in event.attendees:
@@ -335,9 +335,9 @@ adapter.create_task(entry, send_invites=True)
 **Invite notification:**
 ```
 Calendar Updated:
-- Event: Datafund Weekly - DMCC Focus
+- Event: Team Weekly - DMCC Focus
 - Date: Mon Jan 5, 13:00-14:30 CET
-- Invites sent to: @crt, @tadej (new), @gregor (organizer)
+- Invites sent to: @alice, @bob (new), @user (organizer)
 - Description updated with agenda
 ```
 
@@ -346,9 +346,9 @@ Calendar Updated:
 ```
 WEEKLY PREPARED
 ===============
-Team: Datafund
+Team: Team
 Date: Mon Jan 5, 13:00 CET (90min)
-Attendees: @gregor (organizer), @crt, @tadej
+Attendees: @user (organizer), @alice, @bob
 
 GitHub Issue: #222 (created)
 Calendar: Updated ✓ (invites sent)
@@ -356,12 +356,12 @@ Calendar: Updated ✓ (invites sent)
 Agenda Items: 7
 - Business Update (10min)
 - DMCC Proposal (15min) - Decision
-- Verity Sprint (15min) - Update
+- Project Alpha Sprint (15min) - Update
 - ...
 
 Pre-Meeting Prep: 4 tasks assigned
-- @crt: Review DMCC proposal
-- @tadej: Review #220
+- @alice: Review DMCC proposal
+- @bob: Review #220
 - ...
 
 Next: Team will receive calendar invite with full agenda
@@ -381,7 +381,7 @@ Next: Team will receive calendar invite with full agenda
 | `--calendar` | Update calendar event + send invites |
 | `--research` | Trigger AI research on open questions |
 | `--dry-run` | Show what would be created/updated, don't execute |
-| `--team [name]` | Specify team (datafund, datacore) |
+| `--team [name]` | Specify team (teamspace, projectspace) |
 | `--date [date]` | Override meeting date |
 | `--no-invites` | Update calendar but don't send invite notifications |
 
@@ -393,10 +393,10 @@ When `/gtd-weekly-review` completes, hook prompts:
 GTD Weekly Review complete.
 
 Upcoming team meetings detected:
-- Datafund Weekly: Mon Jan 5, 13:00
+- Team Weekly: Mon Jan 5, 13:00
 
 Would you like to prepare the agenda?
-→ Run /weekly datafund
+→ Run /weekly teamspace
 ```
 
 ## Error Handling
@@ -415,17 +415,17 @@ Would you like to prepare the agenda?
 Settings in module.yaml `meeting_types`:
 
 ```yaml
-weekly-datafund:
-  name: "Datafund Weekly"
+weekly-teamspace:
+  name: "Team Weekly"
   duration: 90
-  calendar_match: "Weekly Datafund"
-  github_repo: "datafund/verity"
+  calendar_match: "Weekly Team"
+  github_repo: "org-name/project-alpha"
   attendees:
-    - email: "gregor@datafund.io"
+    - email: "user@organization.example.com"
       role: organizer
-    - email: "crt@datafund.io"
+    - email: "alice@organization.example.com"
       role: attendee
-    - email: "tadej@datafund.io"
+    - email: "bob@organization.example.com"
       role: attendee
   standing_items:
     - "Business Update"

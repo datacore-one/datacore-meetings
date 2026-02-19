@@ -55,7 +55,7 @@ If invoked as just `/meeting-prep` with no meeting type, ask:
 1. **Daily** - Quick standup prep
 2. **Weekly Exec** - Strategic review preparation
 3. **Comms Weekly** - Content and campaigns focus
-4. **Product** - Technical deep-dive (Verity, Santorio)
+4. **Product** - Technical deep-dive (Project Alpha, Project Beta)
 
 If context is clear (e.g., "prepare for tomorrow's weekly"), proceed directly.
 
@@ -155,7 +155,7 @@ Decisions Needed:
   - Choose between Next.js vs Remix :decision:@team:
 
 Discussion Items:
-  - Review Verity pricing model :discuss:
+  - Review Project Alpha pricing model :discuss:
   - Sprint velocity concerns :@team:
 
 Open Questions (4)
@@ -169,9 +169,9 @@ Needs Research:
 
 Stakeholder Status
 ------------------
-@crt: Ready (commented on 2/3 questions)
-@tadej: Needs prep (no comments yet)
-@gregor: Action needed (1 question waiting)
+@alice: Ready (commented on 2/3 questions)
+@bob: Needs prep (no comments yet)
+@user: Action needed (1 question waiting)
 
 ---
 Run '/meeting-prep weekly-exec --research' to trigger AI research

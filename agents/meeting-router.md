@@ -234,11 +234,11 @@ Escalated to Weekly (2):
 
 Moved to Daily (1):
   1. Review PR #42
-     - Reason: Blocking @tadej's work today
+     - Reason: Blocking @bob's work today
 
 Deduplicated (1):
   1. Pricing Strategy Discussion
-     - Kept in: Weekly (needs decision with @crt)
+     - Kept in: Weekly (needs decision with @alice)
      - Removed from: Daily
 
 No Changes (5):

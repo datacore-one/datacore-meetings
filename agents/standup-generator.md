@@ -129,7 +129,7 @@ Pattern:
 ### Phase 4: Audience Filtering
 
 **Determine audience from context:**
-- Manual `/standup --team datafund` → Team mode for Datafund
+- Manual `/standup --team teamspace` → Team mode for team
 - Hook trigger (Daily meeting) → Team mode (auto-detect from attendees)
 - Manual `/standup --personal` → Full personal detail
 - Default (no flag) → Use `default_team_mode` setting
@@ -138,7 +138,7 @@ Pattern:
 
 1. **Relevance filter** - Keep only team-relevant items:
    - Items mentioning team projects/products
-   - Items in team space (1-datafund, etc.)
+   - Items in team space (1-teamspace, etc.)
    - Infrastructure work affecting team (datacore modules)
    - REMOVE: Personal finance, health, family items
 
@@ -185,7 +185,7 @@ If `--meeting` flag provided, apply preset configuration:
 
 Detect project/product for each accomplishment:
 
-1. Check for wiki-links: `[[Verity]]`, `[[Santorio]]`
+1. Check for wiki-links: `[[Project Alpha]]`, `[[Project Beta]]`
 2. Match against `project_keywords` setting
 3. Tag items with detected project
 4. Use for filtering when `--team` specified
@@ -370,7 +370,7 @@ No routing changes.
 ### Routing Notice
 
 - API Authentication → escalated to weekly (4x in dailies)
-- PR Review #42 → moved to daily (blocking @tadej today)
+- PR Review #42 → moved to daily (blocking @bob today)
 
 Run `/meeting-route` for full routing report.
 ```

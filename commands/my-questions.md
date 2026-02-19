@@ -51,7 +51,7 @@ If invoked as just `/my-questions` with no filters, ask:
 "What would you like to see?"
 
 1. **All questions** - Everything across projects
-2. **Specific project** - Just Verity, Datafund, etc.
+2. **Specific project** - Just Project Alpha, Team, etc.
 3. **For a meeting** - Questions tagged for daily/weekly/product
 4. **Needing my input** - Where I'm blocking progress
 
@@ -75,7 +75,7 @@ gh issue list --label question --state open --json number,title,body,labels,assi
 
 For specific project:
 ```bash
-gh issue list --repo datacore-one/{project} --label question --state open
+gh issue list --repo org-name/{project} --label question --state open
 ```
 
 ### Step 4: Parse Question Data
@@ -133,18 +133,18 @@ After showing questions, offer next steps:
 ## Output Example
 
 ```
-OPEN QUESTIONS - Verity
+OPEN QUESTIONS - Project Alpha
 =======================
 
 Ready for Discussion (2)
 ------------------------
 1. [#42] Database selection for production
-   - Stakeholders: @tadej, @gregor
+   - Stakeholders: @bob, @user
    - AI Research: PostgreSQL recommended (85% confidence)
    - Target: Weekly Exec
 
 2. [#38] API rate limiting approach
-   - Stakeholders: @crt
+   - Stakeholders: @alice
    - AI Research: Token bucket algorithm suggested
    - Target: Product Call
 
@@ -203,8 +203,8 @@ meetings:
     github_label: "question"
     auto_research: true
   github_repos:
-    verity: "datacore-one/verity"
-    datafund: "datacore-one/datafund-space"
+    project-alpha: "org-name/project-alpha"
+    teamspace: "org-name/teamspace"
 ```
 
 ## Your Boundaries

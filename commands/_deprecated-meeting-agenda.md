@@ -93,7 +93,7 @@ If context is clear (e.g., "create weekly exec agenda"), proceed directly.
 - Strategic items from next_actions.org with `[#A]` priority
 - Key metrics (if configured)
 
-**Product (verity-product, etc.):**
+**Product (alpha-product, etc.):**
 - GitHub issues from product repo
 - Open PRs needing review
 - Technical questions
@@ -121,7 +121,7 @@ Use appropriate template with gathered data:
 
 **Post to team space:**
 - Daily: Append to today's journal
-- Weekly: Create in `1-datafund/today/`
+- Weekly: Create in `1-teamspace/today/`
 - Product: Create in product docs
 
 **Create GitHub issue:**
@@ -146,7 +146,7 @@ After generating agenda, offer next steps:
 | `daily` | 15 min | agenda-daily.md | standups, blockers |
 | `weekly-exec` | 45 min | agenda-weekly.md | escalations, questions, metrics |
 | `comms-weekly` | 45 min | agenda-weekly.md | content pipeline, campaigns |
-| `verity-product` | 60 min | agenda-product.md | GitHub issues, PRs, tech decisions |
+| `alpha-product` | 60 min | agenda-product.md | GitHub issues, PRs, tech decisions |
 
 ## Output Example
 
@@ -156,7 +156,7 @@ MEETING AGENDA GENERATED
 Type: Weekly Exec
 Date: 2025-12-19 Thu 14:00
 Duration: 45 min
-Attendees: @gregor, @crt, @tadej
+Attendees: @user, @alice, @bob
 
 Escalated from Daily (2)
 ------------------------
@@ -166,7 +166,7 @@ Escalated from Daily (2)
 Open Questions (3)
 ------------------
 1. [#42] Database selection - AI: PostgreSQL (85%)
-2. [#45] Pricing tiers - Needs @gregor input
+2. [#45] Pricing tiers - Needs @user input
 3. [#38] Rate limiting - Ready for discussion
 
 Strategic Items (1)
@@ -179,7 +179,7 @@ Decisions Needed (2)
 2. Engineering roadmap priorities
 
 ---
-[Posted to: 1-datafund/today/2025-12-19-weekly-exec.md]
+[Posted to: 1-teamspace/today/2025-12-19-weekly-exec.md]
 ```
 
 ## Difference from /meeting-prep

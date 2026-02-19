@@ -892,7 +892,7 @@ def main():
 [00:00:32] Jane Doe: I'll have the PR ready by Friday.
 [00:01:15] John Smith: Great. We decided to go with PostgreSQL for the database.
 [00:01:45] Jane Doe: What about the rate limiting question?
-[00:02:10] John Smith: We should discuss that at the weekly. @tadej needs to review the options.
+[00:02:10] John Smith: We should discuss that at the weekly. @bob needs to review the options.
 [00:02:35] Jane Doe: Action item: schedule the security review for next week.
 [00:03:00] John Smith: Going forward we'll use JWT for auth.
         """.strip()

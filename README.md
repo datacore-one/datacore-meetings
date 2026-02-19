@@ -11,11 +11,11 @@ Automates the full meeting lifecycle: standup generation, weekly prep with GitHu
 /standup
 
 # 1-2 days before weekly: Full prep workflow
-/weekly datafund
+/weekly teamspace
 # → Aggregates sources → Creates GitHub Issue → Updates calendar → Sends invites
 
 # Personal prep for any meeting (no issue/calendar)
-/meeting-prep verity-product
+/meeting-prep alpha-product
 
 # After meeting: Process transcript, extract knowledge
 /meeting-process https://docs.google.com/document/d/...
@@ -83,7 +83,7 @@ Morning → /standup (or auto-triggered by /today)
 ### Weekly Prep Workflow
 
 ```
-1-2 days before → /weekly datafund
+1-2 days before → /weekly teamspace
                     ↓
     Find existing calendar entry
                     ↓
@@ -197,15 +197,15 @@ meetings:
 Define meeting types in `module.yaml` → `meeting_types`:
 
 ```yaml
-weekly-datafund:
-  name: "Datafund Weekly"
+weekly-teamspace:
+  name: "Team Weekly"
   duration: 90
-  calendar_match: "Weekly Datafund"
-  github_repo: "datafund/verity"
+  calendar_match: "Weekly Team"
+  github_repo: "org-name/project-alpha"
   attendees:
-    - email: "gregor@datafund.io"
+    - email: "user@organization.example.com"
       role: organizer
-    - email: "crt@datafund.io"
+    - email: "alice@organization.example.com"
       role: attendee
   standing_items:
     - "Business Update"

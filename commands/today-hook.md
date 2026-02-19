@@ -69,7 +69,7 @@ Attendees: [email list]
 ```org
 ** Daily
 <2025-12-18 Thu 10:00-10:15>
-Attendees: crt.ahlin@datafund.io, tadej.fius@datafund.io, gregor@datafund.io
+Attendees: alice@organization.example.com, bob@organization.example.com, user@organization.example.com
 ```
 
 **Detection algorithm:**
@@ -85,7 +85,7 @@ When standup is generated, add to the Daily Briefing after Priority Tasks:
 ```markdown
 ### Standup Preview
 
-**Daily at 10:00** | Attendees: Crt, Tadej
+**Daily at 10:00** | Attendees: Alice, Bob
 
 **Yesterday:**
 - Processed 213 emails - inbox zero achieved
@@ -148,9 +148,9 @@ Insert `### Standup Preview` after Priority Tasks, before Nightshift Results:
 ## Attendee Formatting
 
 Convert email addresses to display names:
-- `crt.ahlin@datafund.io` -> `Crt`
-- `tadej.fius@datafund.io` -> `Tadej`
-- `gregor@datafund.io` -> `Gregor`
+- `alice@organization.example.com` -> `Alice`
+- `bob@organization.example.com` -> `Bob`
+- `user@organization.example.com` -> `User`
 
 **Rule:** Use first part of email, capitalize first letter.
 
@@ -159,7 +159,7 @@ Convert email addresses to display names:
 ```markdown
 ### Standup Preview
 
-**Daily at 10:00** | Attendees: Crt, Tadej, Gregor
+**Daily at 10:00** | Attendees: Alice, Bob, User
 
 **Yesterday:**
 - Processed 213 emails - inbox zero

@@ -112,7 +112,7 @@ Extracts:
 | Pattern | Confidence | Example |
 |---------|------------|---------|
 | "Action item:" prefix | 1.0 | "Action item: schedule review" |
-| "@person will" | 0.95 | "@tadej will update the docs" |
+| "@person will" | 0.95 | "@bob will update the docs" |
 | "I'll" + verb | 0.9 | "I'll have it ready by Friday" |
 | "We should" | 0.6 | "We should refactor that" |
 
@@ -212,14 +212,14 @@ After processing, offer next steps:
 ```
 MEETING PROCESSED
 =================
-Source: Verity Daily (Dec 17, 2025)
+Source: Project Alpha Daily (Dec 17, 2025)
 Duration: ~45 minutes
-Participants: Crt Ahlin, Tadej Fius
+Participants: Alice Smith, Bob Jones
 
 Action Items Created (1)
 ------------------------
 1. [0.85] Research SHAP machine learning concept
-   -> @tadej
+   -> @bob
    Created in next_actions.org
 
 Decisions Captured (3)
@@ -230,7 +230,7 @@ Decisions Captured (3)
 
 Knowledge Extracted (4)
 -----------------------
-1. Verity-RFQ-Exchange-Mechanism.md
+1. Project-Alpha-RFQ-Exchange-Mechanism.md
 2. Data-as-Depreciating-Asset.md
 3. Smart-Contract-Dispute-Recording.md
 4. Data-Ownership-Transfer-Rights.md
