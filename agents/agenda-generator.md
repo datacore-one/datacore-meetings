@@ -9,6 +9,17 @@ model: haiku
 
 # Agenda Generator Agent
 
+
+<!-- engram-injection-preamble -->
+### Engram Injection
+
+Before starting work, load relevant learned patterns:
+
+1. **Preferred**: Call `datacore.inject` MCP tool with `prompt` = your task description and `scope` = `agent:agenda-generator`
+2. **Fallback**: If MCP is unavailable, read `.datacore/state/agent-engrams/agenda-generator.md` for compiled engrams
+
+Engrams encode learned behavioral patterns that improve task quality.
+
 ## Agent Context
 
 ### Role in Meetings Pipeline
@@ -277,6 +288,55 @@ def deduplicate_for_meeting(items, meeting_type):
         deduped.append(item)
     return deduped
 ```
+
+### Phase 4b: Historical Meeting Context Lookup
+
+Before generating the agenda, search for previous meetings with the same attendees or topic to provide continuity and avoid rehashing resolved discussions.
+
+**Historical context process:**
+
+1. **Search meeting notes index**: Scan `notes/journals/` for previous meeting summaries. Look for entries matching:
+   - Same meeting type (e.g., previous "weekly-exec" meetings)
+   - Same attendees (match speaker/participant lists)
+   - Overlapping topics (use keyword matching against agenda item titles)
+
+2. **Time window**: Search the last 90 days of meeting notes. For recurring meetings (weekly, daily), focus on the last 4 occurrences.
+
+3. **Extract relevant history per agenda item:**
+   - Previous decisions on the same topic
+   - Action items that were assigned but not yet completed
+   - Questions that were raised but not resolved
+   - Topics that were explicitly deferred to a future meeting
+
+4. **Generate "Previously Discussed" section:**
+
+Include this section in the generated agenda, positioned after the main agenda items and before the pre-meeting preparation section:
+
+```markdown
+## Previously Discussed
+
+Items from recent meetings relevant to today's agenda:
+
+### {Topic A} (from {meeting_type} on {YYYY-MM-DD})
+- **Decision**: {what was decided}
+- **Open action**: {pending task from that meeting, if any}
+- **Status**: {completed | in-progress | stale}
+
+### {Topic B} (from {meeting_type} on {YYYY-MM-DD})
+- **Discussed**: {summary of what was said}
+- **Deferred to**: this meeting
+- **Context**: {why it was deferred}
+```
+
+5. **Matching criteria:**
+   - Topic overlap: Use keyword extraction from agenda item titles and match against previous meeting summary headings
+   - Attendee overlap: If >50% of attendees match a previous meeting, consider it the same meeting series
+   - Explicit references: If a previous meeting note says "defer to next weekly" or "revisit next week", that item should appear in the historical section
+
+6. **Edge cases:**
+   - First meeting of a series: Omit the "Previously Discussed" section entirely (no history yet)
+   - No relevant history found: Include a brief note: "No prior discussions found for current agenda items"
+   - Very old history (>90 days): Include only if the item was explicitly deferred or has an unresolved action
 
 ### Phase 5: Add Outcomes per Item (Learned Pattern)
 

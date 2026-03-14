@@ -9,6 +9,17 @@ model: sonnet
 
 # Transcription Processor Agent
 
+
+<!-- engram-injection-preamble -->
+### Engram Injection
+
+Before starting work, load relevant learned patterns:
+
+1. **Preferred**: Call `datacore.inject` MCP tool with `prompt` = your task description and `scope` = `agent:transcription-processor`
+2. **Fallback**: If MCP is unavailable, read `.datacore/state/agent-engrams/transcription-processor.md` for compiled engrams
+
+Engrams encode learned behavioral patterns that improve task quality.
+
 ## Agent Context
 
 ### Role in Meetings Pipeline
@@ -169,6 +180,51 @@ Search transcript for each question's keywords:
 | High (>0.8) | Mark as resolved, add resolution comment |
 | Medium (0.5-0.8) | Mark as discussed, add discussion summary |
 | Low (<0.5) | No action |
+
+### Phase 4b: Cross-Meeting Action Item Deduplication
+
+Before creating new action items, check for duplicates against existing action items from recent meetings. This prevents the same task from being created multiple times when topics carry across meetings.
+
+**Dedup process:**
+
+1. **Gather existing action items**: Scan `org/next_actions.org` for tasks with `:meeting:` tag created in the last 14 days. Also scan recent meeting summary files in `notes/journals/` for action item sections.
+
+2. **Apply deduplication using `dedup.py`**: Use the deterministic dedup library at `.datacore/lib/dedup.py` to detect duplicates:
+
+```python
+from datacore.lib.dedup import content_hash, title_similarity
+
+for new_item in extracted_action_items:
+    for existing_item in recent_meeting_actions:
+        # Check 1: Exact content hash match
+        if content_hash(new_item.description) == content_hash(existing_item.description):
+            new_item.duplicate_of = existing_item
+            new_item.duplicate_reason = "exact_content"
+            break
+
+        # Check 2: Title/description similarity (Jaccard threshold 0.7)
+        sim = title_similarity(new_item.description, existing_item.description)
+        if sim >= 0.7:
+            new_item.duplicate_of = existing_item
+            new_item.duplicate_reason = f"title_sim={sim:.3f}"
+            break
+```
+
+3. **Flag duplicates, do not silently drop**: Duplicates must be reported in the meeting summary under a "Duplicate Action Items (Skipped)" section. Never silently discard a detected duplicate -- the user should see what was found and why it was flagged.
+
+4. **Output format for flagged duplicates:**
+
+```markdown
+### Duplicate Action Items (Skipped) ({count})
+{for each duplicate}
+- **{description}** - matches existing: "{existing_description}"
+  Source: {meeting_type} on {existing_date} | Reason: {duplicate_reason}
+```
+
+5. **Edge cases:**
+   - If a duplicate is detected but the assignee differs, flag it but still create -- it may be a reassignment
+   - If the deadline changed, update the existing task's deadline rather than creating a new one
+   - Items with confidence < 0.5 are excluded from dedup comparison (too vague to match reliably)
 
 ### Phase 5: Create Artifacts
 
