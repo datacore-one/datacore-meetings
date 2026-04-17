@@ -52,9 +52,10 @@ Parse yesterday's journal to extract accomplishments, combine with today's sched
 
 | Input | Source | Format |
 |-------|--------|--------|
-| Yesterday's journal | `notes/journals/YYYY-MM-DD.md` | Markdown |
-| Today's schedule | Priority Tasks OR `org/next_actions.org` | Markdown/Org |
-| Blockers | `org/next_actions.org` WAITING items | Org-mode |
+| Yesterday's team journal | `[space]/journal/YYYY-MM-DD.md` | Markdown (new schema) |
+| Carryover data | `standup_sync.py carryover` | JSON |
+| Org tasks | `[space]/org/next_actions.org` (`:standup:` tag) | Org-mode |
+| Blockers | `[space]/org/next_actions.org` WAITING items | Org-mode |
 
 ## Output
 
@@ -64,19 +65,17 @@ Structured standup report in markdown format.
 
 ### Phase 1: Journal Parsing
 
-**Target sections** (configurable via `yesterday_sections`):
+Read the team journal at `[space]/journal/YYYY-MM-DD.md`. Look back up to 3 days
+if no yesterday journal exists.
 
-1. **Yesterday's Wins** - Explicit accomplishment list
-   - Look for `### Yesterday's Wins` heading
-   - Extract bullet points until next heading
+**Target sections** (new team journal schema):
 
-2. **Session Work** - Work session summaries
-   - Look for `### Session Work` heading
-   - Extract subsection titles and key bullet points
+1. **`## @{contributor}` section** - Contributor's work summary
+   - Extract bullet points from `### Done`, `### Progress`, or general bullets
+   - These are the primary accomplishments for the standup
 
-3. **Stats** - Quantitative achievements
-   - Look for `### Stats` or metrics within session work
-   - Extract lines with numbers/percentages
+2. **`## Session Metadata`** - Quantitative context
+   - Extract metrics and stats lines for confidence scoring
 
 **Parsing heuristics:**
 - Prefer explicit accomplishment bullets over implied work
@@ -84,15 +83,28 @@ Structured standup report in markdown format.
 - Keep 3-7 items (trim if more, note if fewer)
 - Remove markdown formatting (bold, links) for clean output
 
-### Phase 2: Task Extraction
+### Phase 2: Carryover and Task Extraction
 
-**For today's tasks:**
+**Run carryover sync first:**
+
+```bash
+python3 .datacore/lib/standup_sync.py carryover \
+  --space [space_path] \
+  --contributor [contributor]
+```
+
+This returns:
+- `carried_over`: yesterday's unchecked items (not yet done)
+- `completed`: yesterday's checked items or org tasks marked DONE
+- `org_tasks_total`: count of `:standup:` tagged tasks
+
+**For today's planned tasks:**
 
 1. **First choice**: Read today's journal `### Priority Tasks` section
    - Already curated by `/today` command
    - Contains deadlines and scheduled items
 
-2. **Fallback**: Query `org/next_actions.org`
+2. **Fallback**: Query `[space]/org/next_actions.org` with `:standup:` tag
    - Find: `SCHEDULED: <YYYY-MM-DD>` for today
    - Find: `DEADLINE: <YYYY-MM-DD>` for today
    - Sort by: DEADLINE > SCHEDULED > Priority A > B > C
@@ -208,22 +220,27 @@ Calculate confidence score based on:
 
 ### Phase 5: Assembly
 
-**Combine into standup:**
+**Combine into standup with org-linked checkboxes:**
 
 ```markdown
 ## Standup - {date}
 
-### Yesterday
-{for each accomplishment}
-- {accomplishment}
+### @{contributor}
+
+#### Yesterday
+{for each completed item from carryover}
+- [x] {item.text} <!-- :ID: {item.id} -->
+{/for}
+{for each accomplishment from journal not in carryover}
+- [x] {accomplishment}
 {/for}
 
-### Today
-{for each task}
-- [ ] {task}
+#### Today
+{for each planned task}
+- [ ] {task.heading} <!-- :ID: {task.id} -->
 {/for}
 
-### Blockers
+#### Blockers
 {if blockers exist}
 {for each blocker}
 - WAITING: {description} (since {date})
@@ -232,6 +249,17 @@ Calculate confidence score based on:
 [omit section]
 {/if}
 ```
+
+**For each NEW today item** not already in org (no ID), call:
+
+```bash
+python3 .datacore/lib/standup_sync.py create \
+  --space [space_path] \
+  --contributor [contributor] \
+  --text "[item text]"
+```
+
+Then embed the returned ID as `<!-- :ID: {id} -->` in the checkbox line.
 
 ### Phase 5b: Format Selection
 
@@ -290,8 +318,8 @@ Track items that appear repeatedly in standups for weekly escalation.
 *** TODO Review API authentication
 :PROPERTIES:
 :DAILY_COUNT: 3
-:FIRST_MENTIONED: [2025-12-15 Sun]
-:LAST_MENTIONED: [2025-12-18 Wed]
+:FIRST_MENTIONED: [2025-12-15 Mon]
+:LAST_MENTIONED: [2025-12-18 Thu]
 :END:
 ```
 
@@ -402,15 +430,18 @@ Run `/meeting-route` for full routing report.
 ## Your Boundaries
 
 **YOU CAN:**
-- Read all journal files in `notes/journals/`
-- Read org files in `org/`
+- Read team journal files in `[space]/journal/`
+- Read org files in `[space]/org/`
 - Parse markdown and org-mode syntax
 - Generate formatted output
+- Run `standup_sync.py carryover` to get carryover data
+- Run `standup_sync.py create` to ensure org tasks exist for new items
 - Update `:DAILY_COUNT:`, `:FIRST_MENTIONED:`, `:LAST_MENTIONED:` properties in org files
 
 **YOU CANNOT:**
-- Modify task state (TODO/DONE)
-- Delete or create tasks
+- Read personal journals in `0-personal/notes/journals/`
+- Modify task state (TODO/DONE) directly — use `standup_sync.py check-off`
+- Delete or create tasks outside of `standup_sync.py create`
 - Access external services
 - Make up accomplishments not in journal
 
@@ -419,3 +450,4 @@ Run `/meeting-route` for full routing report.
 - Flag if no data found: "(no journal found for [date])"
 - Preserve original wording where possible
 - Track escalation counts for blockers mentioned in standup
+- Embed `<!-- :ID: {id} -->` comments in checkbox lines for org linkage
