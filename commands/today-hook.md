@@ -80,28 +80,25 @@ Attendees: alice@organization.example.com, bob@organization.example.com, user@or
 
 ## Section to Add
 
-When standup is generated, add to the Daily Briefing after Priority Tasks:
+When triggered, this hook sets a flag that standup generation is needed.
+The **actual standup generation** is handled by **Step 11-bis** in the main
+`/today` command, which runs after team spaces are updated and is always
+interactive (never skipped).
+
+The hook adds a brief notice to the Daily Briefing after Priority Tasks:
 
 ```markdown
 ### Standup Preview
 
 **Daily at 10:00** | Attendees: Alice, Bob
 
-**Yesterday:**
-- Processed 213 emails - inbox zero achieved
-- Released mail module v1.1.0
-- Completed DSAlliance competitive analysis
-
-**Today:**
-- [ ] Review POC_SPRINT_PLAN_PROPOSAL.md
-- [ ] Sprint planning (10:00)
-- [ ] Comms Weekly (14:00)
-
-**Blockers:**
-- WAITING: ERC-3643 evaluation (since Dec 3)
-
-*Edit and share in Daily meeting.*
+*Standup draft will be generated interactively in Step 11-bis.*
+*Run `/standup` now if you want to generate it immediately.*
 ```
+
+The full standup content is generated via `standup_sync.py carryover` and
+written to `[space]/journal/YYYY-MM-DD.md` under `## Standup` after user
+review and approval.
 
 ## Data Sources
 
