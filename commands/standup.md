@@ -20,9 +20,9 @@
 | Question | Answer |
 |----------|--------|
 | When to run? | Morning of daily meeting, or via /today auto-generation |
-| What does it parse? | Yesterday's journal, today's tasks from next_actions.org |
+| What does it parse? | Team journal [space]/journal/, carryover from standup_sync.py, next_actions.org |
 | What filters apply? | Team relevance, outcome framing, anti-anxiety patterns |
-| Where is output posted? | Today's journal, optionally exported for chat |
+| Where is output posted? | Today's team journal [space]/journal/, optionally exported for chat |
 
 ### Agents This Command Invokes
 
@@ -69,19 +69,30 @@ If context is clear (e.g., "generate standup for weekly exec"), proceed directly
 - If triggered via `/today` hook → Use meeting type from calendar
 - If recent meeting detected → Suggest relevant preset
 
-### Step 3: Parse Yesterday's Journal
+### Step 3: Parse Yesterday's Team Journal and Carryover
 
-Read `0-personal/notes/journals/YYYY-MM-DD.md` for yesterday's date.
+**Run carryover sync:**
 
-**Extract accomplishments from sections:**
-- `### Yesterday's Wins` - Bullet points of wins
-- `### Session Work` - Work session summaries
-- `### Stats` - Metrics and completions
+```bash
+python3 .datacore/lib/standup_sync.py carryover \
+  --space [space_path] \
+  --contributor [contributor_name]
+```
+
+This returns carried-over and completed items from yesterday's standup checkboxes,
+cross-referenced against current org task state.
+
+**Read team journal** at `[space]/journal/YYYY-MM-DD.md` for yesterday's date.
+Look back up to 3 days if no yesterday journal exists.
+
+**Extract accomplishments from new schema sections:**
+- `## @{contributor}` → contributor's own work entries
+- `### Done` or `### Progress` sub-sections within contributor block
 
 **Parsing rules:**
-1. Find section headers matching the configured sections
-2. Extract all bullet points (`- `) under those sections
-3. Stop at next `##` or `###` heading
+1. Find `## @{contributor}` section in team journal
+2. Extract all bullet points (`- `) under that section
+3. Stop at next `##` heading
 4. Filter out empty lines and sub-bullet formatting
 5. Condense verbose items to single-line summaries
 
@@ -91,7 +102,7 @@ Detect which space an accomplishment belongs to:
 - Wiki-links: `[[Project Alpha]]`, `[[Team]]`
 - Keywords: project names, product names
 - File paths mentioned: `/1-teamspace/`, `/2-projectspace/`
-- Default: Personal (0-personal) if no team signal
+- Default: current team space if no explicit attribution
 
 **Team Project Detection:**
 
@@ -212,9 +223,16 @@ Remove items that create worry without actionability:
 ### Step 8: Post to Journal
 
 Unless user specified not to post:
-1. If today's journal exists and has `## Standup` section, replace it
-2. If no `## Standup` section, append after `## Daily Briefing`
-3. If no `## Daily Briefing`, append at end of file
+1. Write standup to today's **team journal** at `[space]/journal/YYYY-MM-DD.md`
+   - If `## Standup` section exists, replace it
+   - If no `## Standup` section, append after `## Daily Briefing`
+   - If no `## Daily Briefing`, append at end of file
+2. **Update yesterday's checkboxes**: for each item in today's standup marked `[x]`,
+   find the corresponding line in yesterday's journal (by `<!-- :ID: ... -->` comment)
+   and update `- [ ]` → `- [x]`
+3. **Sync org tasks** via `standup_sync.py`:
+   - For new today items without org IDs, call `standup_sync.py create`
+   - For completed items, call `standup_sync.py check-off --id [task-id]`
 
 ### Step 9: Follow-up
 
@@ -294,15 +312,18 @@ meetings:
 ## Your Boundaries
 
 **YOU CAN:**
-- Read journal files in `notes/journals/`
-- Read org files in `org/`
+- Read team journal files in `[space]/journal/`
+- Read org files in `[space]/org/`
 - Read calendar.org for meeting context
-- Write to today's journal file
+- Write standup to today's team journal
+- Update yesterday's journal checkboxes (checked state only)
+- Run `standup_sync.py carryover`, `standup_sync.py create`, `standup_sync.py check-off`
 - Generate chat-formatted output
 
 **YOU CANNOT:**
-- Modify org files (tasks, priorities)
-- Delete existing journal content
+- Read personal journals in `0-personal/notes/journals/`
+- Modify org files directly (use standup_sync.py instead)
+- Delete existing journal content (beyond checkbox updates)
 - Access external calendar APIs
 - Post directly to Slack/Discord
 
