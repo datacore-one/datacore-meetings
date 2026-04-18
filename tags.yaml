@@ -20,12 +20,10 @@ namespaces:
     tags:
       - id: decision
         description: Requires group decision
-        routes-to: weekly
         used-by: [agenda-generator]
 
       - id: discuss
         description: Needs team discussion
-        routes-to: weekly
         used-by: [agenda-generator]
 
       - id: blocked
@@ -47,7 +45,6 @@ namespaces:
 
       - id: team
         description: Needs full team discussion
-        routes-to: weekly
         used-by: [agenda-generator]
 
   github:
