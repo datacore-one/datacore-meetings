@@ -1,3 +1,14 @@
+---
+name: meeting-process
+description: meeting-process command
+recall:
+  # DIP-0029 default — engrams scoped to this command + tag-matched.
+  scopes:
+    - command:meeting-process
+  tags:
+    - meeting-process
+---
+
 # /meeting-process
 
 ## Command Context

@@ -1,3 +1,14 @@
+---
+name: standup
+description: standup command
+recall:
+  # DIP-0029 default — engrams scoped to this command + tag-matched.
+  scopes:
+    - command:standup
+  tags:
+    - standup
+---
+
 # /standup
 
 ## Command Context

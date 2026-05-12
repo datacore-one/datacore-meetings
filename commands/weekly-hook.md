@@ -1,3 +1,14 @@
+---
+name: weekly-hook
+description: weekly-hook command
+recall:
+  # DIP-0029 default — engrams scoped to this command + tag-matched.
+  scopes:
+    - command:weekly-hook
+  tags:
+    - weekly-hook
+---
+
 # Weekly Review Hook - Meetings Module
 
 ## Command Context

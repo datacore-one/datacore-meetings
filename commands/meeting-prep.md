@@ -1,3 +1,14 @@
+---
+name: meeting-prep
+description: meeting-prep command
+recall:
+  # DIP-0029 default — engrams scoped to this command + tag-matched.
+  scopes:
+    - command:meeting-prep
+  tags:
+    - meeting-prep
+---
+
 # /meeting-prep
 
 ## Command Context

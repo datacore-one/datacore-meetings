@@ -1,3 +1,14 @@
+---
+name: my-questions
+description: my-questions command
+recall:
+  # DIP-0029 default — engrams scoped to this command + tag-matched.
+  scopes:
+    - command:my-questions
+  tags:
+    - my-questions
+---
+
 # /my-questions
 
 ## Command Context

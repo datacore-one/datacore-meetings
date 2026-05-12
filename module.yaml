@@ -97,3 +97,10 @@ context:
 engrams:
   namespace: meetings
   scopes: [meetings, standup, agenda]
+
+recall:
+  # DIP-0029 — module-level engram scope; composes with command-level recall:.
+  scopes:
+    - module:meetings
+  tags:
+    - meetings
