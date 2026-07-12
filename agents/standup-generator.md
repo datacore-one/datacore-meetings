@@ -1,8 +1,8 @@
 ---
 name: standup-generator
 description: |
-  Parse journal entries and org files to generate standup reports.
-  Extracts accomplishments from yesterday, today's tasks, and blockers.
+  Parse journal entries, org files, and sprint.yaml to generate standup reports.
+  Extracts accomplishments from yesterday, today's tasks, blockers, and sprint progress.
 model: haiku
 ---
 
@@ -46,7 +46,7 @@ Generate standup reports from journal entries and scheduled tasks.
 
 ## Purpose
 
-Parse yesterday's journal to extract accomplishments, combine with today's schedule, and surface blockers for team sync meetings.
+Parse yesterday's journal to extract accomplishments, combine with today's schedule, surface blockers, and add sprint progress from the active sprint.yaml — producing the `## Standup` section that `post_standup.py` posts to GitHub.
 
 ## Inputs
 
@@ -56,10 +56,11 @@ Parse yesterday's journal to extract accomplishments, combine with today's sched
 | Carryover data | `standup_sync.py carryover` | JSON |
 | Org tasks | `[space]/org/next_actions.org` (`:standup:` tag) | Org-mode |
 | Blockers | `[space]/org/next_actions.org` WAITING items | Org-mode |
+| Sprint context | `sprint_standup_inputs.py --sprint <active.yaml>` | JSON |
 
 ## Output
 
-Structured standup report in markdown format.
+Structured standup report in markdown format. When sprint context is available, includes a **Sprint** section showing day N/M, progress summary, in-flight and blocked items.
 
 ## Algorithm
 
@@ -137,6 +138,60 @@ Pattern:
 ```
 - WAITING: [description] (since [date])
 ```
+
+### Phase 3b: Sprint Context (when active sprint present)
+
+**Collect sprint inputs:**
+
+```bash
+python3 .datacore/lib/sprint_standup_inputs.py \
+    --sprint-dir ~/Data/5-plur/2-projects/enterprise/sprints
+```
+
+If the script fails or returns no active sprint, skip this phase silently.
+
+**Extract from JSON output:**
+
+| Field | Use |
+|-------|-----|
+| `sprint_id`, `day_of_sprint`, `sprint_length` | Header line: "Sprint 2026-W20 · day 7/7" |
+| `progress` | Summary: "22 done / 45 total · 3 in review · 4 blocked" |
+| `in_flight[]` | **In flight** section — items with state `review`, `claimed`, `in-progress` |
+| `blocked[]` | **Blocked** section — items with state `blocked` |
+| `shipped[-5:]` | Last 5 done items for overnight shipping summary |
+| `hitl_pending[]` | Append to **Blocked** as "⏸ HITL: {reason}" entries |
+
+**Format sprint section:**
+
+```markdown
+### Sprint
+**{{sprint_id}}** · day {{day_of_sprint}}/{{sprint_length}} · {{progress.done}} done / {{progress.total}} total
+
+**Shipped overnight**
+{{#each shipped[-3:]}}
+- {{actor or "—"}}: {{id}} — {{title}} {{#if pr}}({{pr}}){{/if}}
+{{/each}}
+
+**In flight**
+{{#each in_flight}}
+- {{actor or "—"}}: {{id}} [{{state}}] — {{title}}
+{{/each}}
+
+**Blocked / awaiting HITL**
+{{#each blocked}}
+- {{actor or "—"}}: {{id}} — {{title}}
+{{/each}}
+{{#each hitl_pending}}
+- ⏸ HITL: {{description}} ({{actor}}, since {{date}})
+{{/each}}
+```
+
+**Rules:**
+- If `shipped` is empty, omit "Shipped overnight" section entirely
+- If `in_flight` is empty, write "No items in flight"
+- Only show `blocked` entries from sprint, not personal org blockers (Phase 3 covers those)
+- Trim `title` to 60 chars if longer, add "…"
+- Actor display: `miles-on-nightshift` → `Miles`, `data-on-laptop` → `Data`, `crtahlin` → `Crt`, `tris-on-hermes` → `Tris`
 
 ### Phase 4: Audience Filtering
 
