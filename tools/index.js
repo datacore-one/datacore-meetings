@@ -2,7 +2,7 @@
 // Generates standups from journal entries and lists upcoming meetings.
 // Plain JS (ESM) for direct dynamic import by the MCP server.
 
-import { z } from 'zod'
+import { z } from '@datacore-one/mcp/runtime'
 import * as fs from 'fs'
 import * as path from 'path'
 
