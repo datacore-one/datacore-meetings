@@ -24,6 +24,22 @@ Automates the full meeting lifecycle: standup generation, weekly prep with GitHu
 /my-questions
 ```
 
+## Ad-hoc Meeting Management
+
+Beyond the structured commands below, individual meetings can be created,
+updated and cancelled through natural-language conversation. The calendar
+adapter (`sync/adapters/google_calendar.py`) exposes create and update
+operations, so the AI can act on instructions like:
+
+- "Schedule a meeting with someone tomorrow at 2pm about Q1 planning"
+- "Add Maria to the product sync on Friday"
+- "Move the design review to 3pm and update the invite"
+- "Cancel the test meeting and notify attendees"
+
+There is no dedicated `/create-meeting` command; the capability is the
+adapter's, and the conversation is the interface. Changes that reach other
+people (invites, cancellations) are confirmed before they are sent.
+
 ## Commands
 
 ### Meeting-Type Commands (Primary Entry Points)
