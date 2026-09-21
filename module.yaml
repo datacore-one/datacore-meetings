@@ -1,0 +1,109 @@
+manifest_version: 2
+name: meetings
+version: 0.5.0
+description: |
+  Meeting lifecycle management for Datacore.
+  Automates standup generation, meeting preparation, transcription processing,
+  and smart routing between daily/weekly meetings.
+
+  Tagline: "Your journal remembers. AI prepares."
+
+author: datacore-one
+repository: https://github.com/datacore-one/module-meetings
+license: MIT
+builtin: true
+
+provides:
+  tools:
+    - name: standup
+      description: "Generate standup from recent journal entries"
+      handler: tools/index.js
+    - name: upcoming
+      description: "List upcoming meetings with prep status"
+      handler: tools/index.js
+  skills:
+    - standup
+    - my-questions
+  agents:
+    - standup-generator
+    - agenda-generator
+    - question-researcher
+    - transcription-processor
+    - meeting-router
+  commands:
+    - standup
+    - weekly
+    - meeting-prep
+    - meeting-process
+
+dependencies:
+  - core@>=1.0.0
+
+optional:
+  - nightshift
+  - crm
+  - calendar
+
+settings:
+  auto_generate_standup:
+    description: "Auto-generate standup during /today if Daily meeting detected"
+    default: true
+  standup_meeting_match:
+    description: "Calendar entry title pattern to match for standup trigger"
+    default: "Daily"
+  blockers_threshold_days:
+    description: "Highlight WAITING tasks older than N days"
+    default: 3
+  post_to_journal:
+    description: "Automatically append standup to today's journal"
+    default: true
+  default_team_mode:
+    description: "Default to team-filtered standup (vs personal full detail)"
+    default: true
+  team_space_mappings:
+    description: "Map team names to space directories"
+    default:
+      teamspace: "1-teamspace"
+      projectspace: "2-projectspace"
+  meeting_presets:
+    description: "Predefined meeting type configurations"
+    default:
+      daily:
+        filter_level: team
+        max_items: 5
+        include_blockers: team_actionable
+        format: brief
+      weekly:
+        filter_level: team
+        max_items: 7
+        include_blockers: all_team
+        format: full
+
+hooks:
+  today:
+    - section: your_agenda
+      prompt: commands/today-hook.md
+      stage: gather
+      depends_on: [good_morning]
+      refresh: true
+
+related_dips:
+  - DIP-0013
+  - DIP-0009
+  - DIP-0010
+
+# DIP-0022 context
+context:
+  priority: on_match
+
+# Engrams
+engrams:
+  namespace: meetings
+  scopes: [meetings, standup, agenda]
+
+recall:
+  # DIP-0029 — module-level engram scope; composes with command-level recall:.
+  scopes:
+    - module:meetings
+  tags:
+    - meetings

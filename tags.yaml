@@ -1,0 +1,60 @@
+# Meetings Module Tag Registry
+# Tags used by meeting-related agents and workflows
+# See DIP-0014 for tag specification
+
+version: 1
+type: module
+module: meetings
+description: Tags for meeting management workflow
+
+namespaces:
+  source:
+    description: Item source markers
+    tags:
+      - id: meeting
+        description: Item created from meeting transcript
+        used-by: [transcription-processor]
+
+  agenda:
+    description: Meeting agenda routing
+    tags:
+      - id: decision
+        description: Requires group decision
+        used-by: [agenda-generator]
+
+      - id: discuss
+        description: Needs team discussion
+        used-by: [agenda-generator]
+
+      - id: blocked
+        description: Blocked by external dependency
+        escalation-trigger: true
+        used-by: [agenda-generator]
+
+  routing:
+    description: Explicit meeting routing
+    prefix: "@"
+    tags:
+      - id: daily
+        description: Explicitly for daily standup
+        used-by: [agenda-generator, meeting-router]
+
+      - id: weekly
+        description: Explicitly for weekly meeting
+        used-by: [agenda-generator, meeting-router]
+
+      - id: team
+        description: Needs full team discussion
+        used-by: [agenda-generator]
+
+  github:
+    description: GitHub issue labels used by meetings
+    prefix: "meeting:"
+    tags:
+      - id: daily
+        description: Question for daily standup
+        used-by: [agenda-generator]
+
+      - id: weekly
+        description: Question for weekly meeting
+        used-by: [agenda-generator]
