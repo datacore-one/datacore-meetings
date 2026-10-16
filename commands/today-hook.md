@@ -172,7 +172,7 @@ Convert email addresses to display names:
 **Yesterday:**
 - Processed 213 emails - inbox zero
 - Released mail module v1.1.0
-- DSAlliance competitive analysis completed
+- Competitive analysis completed
 
 **Today:**
 - [ ] Review PoC sprint plan proposal
@@ -180,7 +180,7 @@ Convert email addresses to display names:
 - [ ] Comms Weekly
 
 **Blockers:**
-- ERC-3643 evaluation on hold (Dec 3)
+- Standards evaluation on hold (Dec 3)
 
 *Ready to share. Edit if needed.*
 ```

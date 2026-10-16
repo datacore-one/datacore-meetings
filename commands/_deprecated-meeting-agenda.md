@@ -175,7 +175,7 @@ Strategic Items (1)
 
 Decisions Needed (2)
 --------------------
-1. Approve Dubai pilot contract
+1. Approve pilot contract
 2. Engineering roadmap priorities
 
 ---

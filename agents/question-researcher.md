@@ -190,7 +190,7 @@ Questions that can be answered with research:
 
 Questions that need a specific person's input:
 
-**Example:** "What are the legal requirements for Dubai?"
+**Example:** "What are the legal requirements in a new market?"
 
 **Action:**
 1. Identify the right person

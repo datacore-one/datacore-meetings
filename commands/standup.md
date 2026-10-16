@@ -265,16 +265,16 @@ STANDUP GENERATED (Team: Team)
 
 Yesterday:
 - Shipped mail module v1.1.0 (automation improvement)
-- Completed DSAlliance competitive analysis
-- Reviewed investor pitch deck feedback
+- Completed competitive analysis
+- Reviewed pitch deck feedback
 
 Today:
-- [ ] Review POC_SPRINT_PLAN_PROPOSAL.md
+- [ ] Review sprint plan proposal
 - [ ] Sprint planning meeting (10:00)
 - [ ] Comms Weekly (14:00)
 
 Blockers:
-- WAITING: ERC-3643 evaluation - need legal input (since Dec 3)
+- WAITING: Standards evaluation - need legal input (since Dec 3)
 
 [Posted to journal: 0-personal/notes/journals/2025-12-18.md]
 ```
@@ -288,14 +288,14 @@ Compact format for Slack/Discord posting:
 
 *Yesterday:*
 • Shipped mail module v1.1.0
-• Completed DSAlliance competitive analysis
-• Reviewed investor pitch deck
+• Completed competitive analysis
+• Reviewed pitch deck
 
 *Today:*
 • POC sprint planning
 • Comms Weekly
 
-*Blockers:* ERC-3643 eval (need legal)
+*Blockers:* Standards eval (need legal)
 ```
 
 ## Error Handling

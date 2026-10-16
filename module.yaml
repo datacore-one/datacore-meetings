@@ -64,6 +64,12 @@ settings:
   default_team_mode:
     description: "Default to team-filtered standup (vs personal full detail)"
     default: true
+  timezone:
+    description: "IANA timezone for calendar events (set yours in settings.local.yaml)"
+    default: "UTC"
+  actor_display_names:
+    description: "Map sprint actor ids (agent/user accounts) to short display names"
+    default: {}
   team_space_mappings:
     description: "Map team names to space directories"
     default:

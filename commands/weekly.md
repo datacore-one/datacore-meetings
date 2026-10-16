@@ -328,7 +328,7 @@ adapter.update_event(event, send_updates=True)
 
 **If no existing event (create new):**
 ```python
-tz = pytz.timezone('Europe/Ljubljana')
+tz = pytz.timezone(TIMEZONE)  # the module's `timezone` setting
 start = tz.localize(datetime(YYYY, MM, DD, HH, MM))
 end = start + timedelta(minutes=duration)
 

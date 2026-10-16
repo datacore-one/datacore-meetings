@@ -145,7 +145,7 @@ Pattern:
 
 ```bash
 python3 .datacore/lib/sprint_standup_inputs.py \
-    --sprint-dir ~/Data/5-plur/2-projects/enterprise/sprints
+    --sprint-dir ~/Data/<space>/2-projects/<project>/sprints
 ```
 
 If the script fails or returns no active sprint, skip this phase silently.
@@ -191,7 +191,7 @@ If the script fails or returns no active sprint, skip this phase silently.
 - If `in_flight` is empty, write "No items in flight"
 - Only show `blocked` entries from sprint, not personal org blockers (Phase 3 covers those)
 - Trim `title` to 60 chars if longer, add "…"
-- Actor display: `miles-on-nightshift` → `Miles`, `data-on-laptop` → `Data`, `teammate` → `Crt`, `tris-on-hermes` → `Tris`
+- Actor display: map each actor id to the short name in the `actor_display_names` setting (e.g. `agent-on-server` → `Agent`); show unmapped ids as they are
 
 ### Phase 4: Audience Filtering
 
