@@ -35,6 +35,10 @@ provides:
     - weekly
     - meeting-prep
     - meeting-process
+    - _deprecated-meeting-agenda
+    - my-questions
+    - today-hook
+    - weekly-hook
 
 dependencies:
   - core@>=1.0.0
